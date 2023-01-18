@@ -16,23 +16,56 @@ import (
 // UserSerialize User : this is the router for the users not the model of User
 // UserSerialize serializer
 type UserSerialize struct {
-	ID        uint   `json:"id"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+	ID           uint      `json:"id"`
+	Username     string    `json:"username"`
+	FirstName    string    `json:"first_name"`
+	LastName     string    `json:"last_name"`
+	Email        string    `json:"email"`
+	Password     string    `json:"password"`
+	BirthDate    string    `json:"BirthDate"`
+	Avatar       string    `json:"Avatar"`
+	IsBan        bool      `json:"IsBan"`
+	LastLoginAt  time.Time `json:"LastLoginAt"`
+	IsSuperAdmin bool      `json:"IsSuperAdmin"`
+}
+
+func AddUser(c *fiber.Ctx) error {
+	// init user model
+	userModel := new(models.User)
+	// parse body to user model
+	if err := c.BodyParser(userModel); err != nil {
+		return c.Status(fiber.StatusInternalServerError).JSON(fiber.Map{
+			"message": err.Error(),
+		})
+	}
+	// validate user model
+	errorResponses := models.ValidateUser(*userModel)
+	if errorResponses != nil {
+		return c.Status(fiber.StatusBadRequest).JSON(errorResponses)
+	}
+
+	hashPassword := helper.HashAndSalt([]byte(userModel.Password))
+	userModel.Password = hashPassword
+	database.Database.Db.Create(&userModel)
+
+	//Return user
+	responseUser := CreateResponseUser(*userModel)
+	return c.Status(200).JSON(responseUser)
 }
 
 // CreateResponseUser /**
 func CreateResponseUser(userModel models.User) UserSerialize {
 	return UserSerialize{
-		ID:        userModel.ID,
-		Username:  userModel.Username,
-		FirstName: userModel.FirstName,
-		LastName:  userModel.LastName,
-		Email:     userModel.Email,
-		Password:  userModel.Password,
+		ID:           userModel.ID,
+		Username:     userModel.Username,
+		FirstName:    userModel.FirstName,
+		LastName:     userModel.LastName,
+		Email:        userModel.Email,
+		BirthDate:    userModel.BirthDate,
+		Avatar:       userModel.Avatar,
+		IsBan:        userModel.IsBan,
+		LastLoginAt:  userModel.LastLoginAt,
+		IsSuperAdmin: userModel.IsSuperAdmin,
 	}
 }
 
