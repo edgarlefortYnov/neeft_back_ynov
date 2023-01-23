@@ -6,6 +6,7 @@ package authController
 
 import (
 	"github.com/gofiber/fiber/v2"
+	users2 "neeft_back/app/controllers/users"
 	"neeft_back/app/helper"
 	"neeft_back/app/models/users"
 	"neeft_back/database"
@@ -75,6 +76,6 @@ func Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
-		"user":          user,
+		"user":          users2.CreateResponseUser(user),
 	})
 }
