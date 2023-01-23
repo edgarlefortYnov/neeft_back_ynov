@@ -5,15 +5,23 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"neeft_back/app/config"
+	"strings"
 	"time"
 )
 
 // CheckJWT Checks if the passed JWT token is valid, and not expired
 func CheckJWT(ctx *fiber.Ctx, decodedClaims *config.JWTClaims) error {
-	token := ctx.Cookies("token", "")
+	tokenParts := strings.Split(ctx.Get("Authorization", ""), " ")
 
-	if token == "" {
-		return errors.New("user not authenticated")
+	if len(tokenParts) != 2 {
+		return errors.New("not authorized")
+	}
+
+	authMethod := tokenParts[0]
+	token := tokenParts[1]
+
+	if authMethod != "Bearer" {
+		return errors.New("only bearer authorization is supported")
 	}
 
 	claims := config.JWTClaims{}
@@ -33,6 +41,6 @@ func CheckJWT(ctx *fiber.Ctx, decodedClaims *config.JWTClaims) error {
 		}
 		return nil
 	} else {
-		return errors.New("invalid jwt token")
+		return errors.New("invalid JWT token")
 	}
 }

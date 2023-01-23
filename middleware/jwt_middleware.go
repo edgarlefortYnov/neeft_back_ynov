@@ -30,5 +30,5 @@ func VerifyJWT(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	return nil
+	return c.Next()
 }

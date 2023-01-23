@@ -11,7 +11,10 @@ var JWT_SECRET = []byte("aqwzsxedcrfvtgbyhnujujikolpmamzlekjhgfdswqazx")
 //var COOKIE_TOKEN = "token"
 
 type JWTClaims struct {
-	UserId uint   `json:"uid"`
-	Email  string `json:"email"`
+	UserId    uint   `json:"uid"`
+	Email     string `json:"email"`
+	FirstName string `json:"firstName"`
+	LastName  string `json:"lastName"`
+	Username  string `json:"username"`
 	jwt.RegisteredClaims
 }

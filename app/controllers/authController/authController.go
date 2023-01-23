@@ -41,29 +41,40 @@ func Login(c *fiber.Ctx) error {
 		return helper.Return401(c, "User Agent has changed")
 	}
 
-	// Generate JWT token for Auth user
-	expireTime := time.Now().Add(time.Minute * 60 * 24 * 14) // Two weeks
-	claims := &config.JWTClaims{
+	// Generate the access token
+	accessTokenExpiryTime := time.Now().Add(time.Minute * 5)
+	accessTokenClaims := &config.JWTClaims{
 		Email:            user.Email,
 		UserId:           user.ID,
-		RegisteredClaims: jwt.RegisteredClaims{Issuer: "neeft", ExpiresAt: jwt.NewNumericDate(expireTime)},
+		FirstName:        user.FirstName,
+		LastName:         user.LastName,
+		RegisteredClaims: jwt.RegisteredClaims{Issuer: "neeft", ExpiresAt: jwt.NewNumericDate(accessTokenExpiryTime)},
 	}
-	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
-	tokenString, err := token.SignedString(config.JWT_SECRET)
+	accessTokenGen := jwt.NewWithClaims(jwt.SigningMethodHS256, accessTokenClaims)
+	accessToken, err := accessTokenGen.SignedString(config.JWT_SECRET)
 	if err != nil {
 		return helper.Return500(c, err.Error())
 	}
 
-	// The JWT token is stored inside a cookie that we use later for authentication
-	c.Cookie(&fiber.Cookie{
-		Name:    "token",
-		Value:   tokenString,
-		Expires: expireTime,
-	})
+	// Generate the refresh token
+	refreshTokenExpiryTime := time.Now().Add(time.Hour * 24 * 7) // 7 days
+	refreshTokenClaims := &config.JWTClaims{
+		Email:            user.Email,
+		UserId:           user.ID,
+		FirstName:        user.FirstName,
+		LastName:         user.LastName,
+		Username:         user.Username,
+		RegisteredClaims: jwt.RegisteredClaims{Issuer: "neeft", ExpiresAt: jwt.NewNumericDate(refreshTokenExpiryTime)},
+	}
+	refreshTokenGen := jwt.NewWithClaims(jwt.SigningMethodHS256, refreshTokenClaims)
+	refreshToken, err := refreshTokenGen.SignedString(config.JWT_SECRET)
+	if err != nil {
+		return helper.Return500(c, err.Error())
+	}
 
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
-		"message": "login success",
-		"token":   tokenString,
-		"user":    user,
+		"access_token":  accessToken,
+		"refresh_token": refreshToken,
+		"user":          user,
 	})
 }
