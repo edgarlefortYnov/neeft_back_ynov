@@ -19,5 +19,6 @@ func main() {
 	app.Use(logger.New())
 
 	routes.SetupRouters(app)
+	
 	log.Fatal(app.Listen(":" + port))
 }
