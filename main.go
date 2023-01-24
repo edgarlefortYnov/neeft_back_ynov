@@ -17,5 +17,5 @@ func main() {
 	app.Use(logger.New())
 
 	routes.SetupRouters(app)
-	log.Fatal(app.Listen(process.env.PORT || ":3000"))))
+	log.Fatal(app.Listen(process.env.PORT || ":3000"))
 }
