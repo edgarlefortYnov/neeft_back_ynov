@@ -6,10 +6,14 @@ package tournament
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"neeft_back/app/config"
 	teams2 "neeft_back/app/controllers/teams"
 	"neeft_back/app/models/teams"
 	"neeft_back/app/models/tournaments"
+	"neeft_back/app/models/users"
 	"neeft_back/database"
+	"neeft_back/middleware"
+	"neeft_back/utils"
 )
 
 type TournamentTeamsRequest struct {
@@ -19,6 +23,18 @@ type TournamentTeamsRequest struct {
 
 // SendPendingRequest is used to send a pending request to join a tournament by a team
 func SendPendingRequest(c *fiber.Ctx) error {
+	claims := config.JWTClaims{}
+
+	if err := utils.CheckJWT(c, &claims); err != nil {
+		return c.Status(401).JSON(err.Error())
+	}
+
+	user := users.User{}
+
+	if err := middleware.FindUserByClaim(claims, &user); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
 	var request TournamentTeamsRequest
 	tournamentId, _ := c.ParamsInt("id")
 
@@ -45,6 +61,11 @@ func SendPendingRequest(c *fiber.Ctx) error {
 		if potentialRequest.Status == tournaments.StatusPending {
 			return c.Status(400).JSON("This team has already sent a pending request")
 		}
+	}
+
+	// Check if the user is the team owner
+	if uint(team.UserId) != user.ID {
+		return c.Status(400).JSON("You are not the owner of the team")
 	}
 
 	finalItem := tournaments.TournamentTeams{
