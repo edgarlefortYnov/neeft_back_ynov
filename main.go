@@ -9,13 +9,15 @@ import (
 	"log"
 	"neeft_back/database"
 	"neeft_back/routes"
+	"os"
 )
 
 func main() {
+	port := os.Getenv("PORT")
 	database.ConnectDb() // Initialize the database if it does not exist (it is created automatically the tables thanks to the migration)
 	app := fiber.New()
 	app.Use(logger.New())
 
 	routes.SetupRouters(app)
-	log.Fatal(app.Listen(process.env.PORT || ":3000"))
+	log.Fatal(app.Listen(":"+ (port || "3000")))
 }
