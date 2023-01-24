@@ -13,9 +13,9 @@ func SetupRouters(app *fiber.App) {
 
 	//------------------ Auth ---------------------
 	api := app.Group("/api")
-	api.Post("login", authController.Login)
-	api.Post("/user", users.CreateUser)
-	api.Post("/register", users.CreateUser)
+	api.Post("/player/login", authController.Login)
+	api.Post("/player/refresh-login", authController.RefreshLogin)
+	api.Post("/player/register", users.CreateUser)
 
 	auth := api.Use(middleware.VerifyJWT)
 
