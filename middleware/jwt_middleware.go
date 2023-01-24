@@ -21,7 +21,7 @@ func VerifyJWT(c *fiber.Ctx) error {
 	claims := config.JWTClaims{}
 
 	if err := utils.CheckJWT(c, &claims); err != nil {
-		return c.Status(400).JSON(err.Error())
+		return c.Status(401).JSON(err.Error())
 	}
 
 	user := users.User{}
