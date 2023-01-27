@@ -13,26 +13,30 @@ import (
 	"time"
 )
 
-// UserSerialize User : this is the router for the users not the model of User
-// UserSerialize serializer
-type UserSerialize struct {
-	ID        uint   `json:"id"`
-	Username  string `json:"username"`
-	FirstName string `json:"first_name"`
-	LastName  string `json:"last_name"`
-	Email     string `json:"email"`
-	Password  string `json:"password"`
+// UserResponse User : this is the router for the users not the model of User
+// UserResponse serializer
+type UserResponse struct {
+	ID             uint     `json:"id"`
+	Username       string   `json:"username"`
+	Email          string   `json:"email"`
+	FirstName      string   `json:"firstName"`
+	LastName       string   `json:"lastName"`
+	ProfilePicture string   `json:"profilePicture"`
+	Status         string   `json:"status"`
+	Roles          []string `json:"roles"`
 }
 
 // CreateResponseUser /**
-func CreateResponseUser(userModel users.User) UserSerialize {
-	return UserSerialize{
-		ID:        userModel.ID,
-		Username:  userModel.Username,
-		FirstName: userModel.FirstName,
-		LastName:  userModel.LastName,
-		Email:     userModel.Email,
-		Password:  userModel.Password,
+func CreateResponseUser(userModel users.User) UserResponse {
+	return UserResponse{
+		ID:             userModel.ID,
+		Username:       userModel.Username,
+		FirstName:      userModel.FirstName,
+		LastName:       userModel.LastName,
+		Email:          userModel.Email,
+		ProfilePicture: "",
+		Status:         "active",
+		Roles:          []string{"player"},
 	}
 }
 
@@ -58,6 +62,7 @@ func CreateUser(c *fiber.Ctx) error {
 
 	hashUserPassword := helper.HashAndSalt([]byte(user.Password))
 	user.Password = hashUserPassword
+	user.LastUserAgent = string(c.Request().Header.UserAgent())
 
 	database.Database.Db.Create(&user)
 	responseUser := CreateResponseUser(user)
@@ -68,7 +73,7 @@ func CreateUser(c *fiber.Ctx) error {
 func GetAllUser(c *fiber.Ctx) error {
 	var allUsers []users.User
 	database.Database.Db.Find(&allUsers)
-	var responseUsers []UserSerialize
+	var responseUsers []UserResponse
 	for _, user := range allUsers {
 		responseUser := CreateResponseUser(user)
 		responseUsers = append(responseUsers, responseUser)
@@ -171,3 +176,26 @@ func DeleteUser(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON("Successfully deleted User")
 }
+
+/*
+// JWTDebug used to test JWT authentication
+func JWTDebug(c *fiber.Ctx) error {
+	claims := config.JWTClaims{}
+
+	if err := utils.CheckJWT(c, &claims); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	fmt.Println("after")
+	fmt.Println(claims.UserId)
+	fmt.Println(claims.Email)
+
+	user := users.User{}
+
+	if err := FindUserByClaim(claims, &user); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	return c.Status(200).JSON(user)
+}
+*/
