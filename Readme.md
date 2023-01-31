@@ -378,12 +378,14 @@ Envoie une requête pour un joueur (récupéré avec le token JWT)
 "success"
 ```
 
-### POST `/api/tournament/{id}/request/player/accept/[rid]`
+### POST `/api/tournament/{id}/request/player/accept/{rid}`
 Envoie une requète pour un joueur (récupéré avec le token JWT)
 
 **Arguments**
 
 `id` (URL) : L'ID du tournoi
+
+
 `rid` (URL) : L'ID de la requête à accepter
 
 ```json
