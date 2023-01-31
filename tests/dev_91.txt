@@ -1,0 +1,12 @@
+Demande pour rejoindre un tournoi pour un joueur:
+    Check si le joueur existe vraiment: Fait de base avec JWT
+    Check si le tournament existe vraiment: OK
+    Check si le joueur n'a pas rejoint déjà le tournament: OK
+
+Récupérer les demandes de tournoi en cours:
+    Check si l'id du tournoi est valide: OK
+
+Accepter la demande sur un tournoi:
+    Check si la demande a déjà été acceptée: OK
+    Check si le tournoi existe: OK
+    Check si la requête existe: OK

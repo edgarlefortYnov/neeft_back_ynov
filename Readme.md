@@ -361,3 +361,62 @@ Supprime le tournoi ayant l'id `id`
 ```json
 "Successfully deleted Tournament"
 ```
+
+### POST `/api/tournament/{id}/request/player`
+Envoie une requête pour un joueur (récupéré avec le token JWT)
+
+**Arguments**
+
+`id` (URL) : L'ID du tournoi
+
+```json
+{ }
+```
+
+**Réponse**
+```json
+"success"
+```
+
+### POST `/api/tournament/{id}/request/player/accept/[rid]`
+Envoie une requète pour un joueur (récupéré avec le token JWT)
+
+**Arguments**
+
+`id` (URL) : L'ID du tournoi
+`rid` (URL) : L'ID de la requête à accepter
+
+```json
+{ }
+```
+
+**Réponse**
+```json
+"success"
+```
+
+### GET `/api/tournament/{id}/requests/player`
+Retourne toutes les requêtes de joueurs individuels **en attente** sur ce tournoi
+
+**Arguments**
+
+`id` (URL) : L'ID du tournoi
+
+```json
+{ }
+```
+
+**Réponse**
+```json
+[
+  {
+    "id": 1,
+    "tournamentId": 1,
+    "userId": 1,
+    "status": 1,
+    "Created_at": "0001-01-01T00:00:00Z",
+    "Updated_at": "0001-01-01T00:00:00Z",
+    "Deleted_at": "0001-01-01T00:00:00Z"
+  }
+]
+```
