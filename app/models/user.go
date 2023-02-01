@@ -17,6 +17,7 @@ type User struct {
 	RememberToken   string `gorm:"varchar(100)" json:"rememberToken"`
 	BirthDate       string `gorm:"varchar(255)" json:"birthDate"`
 	Avatar          string `gorm:"varchar(255)" json:"avatar"`
+	LastUserAgent   string `gorm:"varchar(255)" json:"lastUserAgent"`
 	IsBan           bool   `gorm:"boolean"      json:"isBan"`
 	LastLoginAt     time.Time
 	IsSuperAdmin    bool `gorm:"boolean"      json:"isSuperAdmin"`

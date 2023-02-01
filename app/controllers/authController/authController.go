@@ -1,10 +1,21 @@
 package authController
 
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/golang-jwt/jwt/v4"
+	"neeft_back/app/config"
+	"neeft_back/app/helper"
+	"neeft_back/app/models"
+	"neeft_back/database"
+	"neeft_back/middleware"
+	"neeft_back/utils"
+	"time"
+)
+
 /**
  * @Author ANYARONKE Dare Samuel
  */
 
-/*
 // Login : Login a user and return a token to be used for authentication
 func Login(c *fiber.Ctx) error {
 
@@ -75,7 +86,7 @@ func RefreshLogin(c *fiber.Ctx) error {
 		return c.Status(401).JSON(err.Error())
 	}
 
-	user := users.User{}
+	user := models.User{}
 
 	if err := middleware.FindUserByClaim(claims, &user); err != nil {
 		return c.Status(400).JSON(err.Error())
@@ -122,6 +133,3 @@ func RefreshLogin(c *fiber.Ctx) error {
 		"refresh_token": refreshToken,
 	})
 }
-
-
-*/
