@@ -2,11 +2,12 @@ package middleware
 
 import (
 	"errors"
-	"github.com/gofiber/fiber/v2"
 	"neeft_back/app/config"
-	"neeft_back/app/models/users"
+	users "neeft_back/app/models"
 	"neeft_back/database"
 	"neeft_back/utils"
+
+	"github.com/gofiber/fiber/v2"
 )
 
 func FindUserByClaim(claims config.JWTClaims, user *users.User) error {

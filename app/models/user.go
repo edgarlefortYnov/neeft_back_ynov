@@ -1,4 +1,4 @@
-package users
+package models
 
 /**
  * @Author ANYARONKE Daré Samuel
@@ -14,8 +14,14 @@ type User struct {
 	Email           string `gorm:"varchar(255)" json:"email"`
 	EmailVerifiedAt bool   `gorm:"boolean"      json:"emailVerifiedAt"`
 	Password        string `gorm:"varchar(255)" json:"password"`
-	LastUserAgent   string `gorm:"varchar(255)" json:"lastUserAgent"`
-	Created_at      time.Time
-	Updated_at      time.Time
-	Deleted_at      time.Time
+	RememberToken   string `gorm:"varchar(100)" json:"rememberToken"`
+	BirthDate       string `gorm:"varchar(255)" json:"birthDate"`
+	Avatar          string `gorm:"varchar(255)" json:"avatar"`
+	IsBan           bool   `gorm:"boolean"      json:"isBan"`
+	LastLoginAt     time.Time
+	IsSuperAdmin    bool `gorm:"boolean"      json:"isSuperAdmin"`
+
+	Created_at time.Time
+	Updated_at time.Time
+	Deleted_at time.Time
 }

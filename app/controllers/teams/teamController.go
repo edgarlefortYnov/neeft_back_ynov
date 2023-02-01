@@ -8,8 +8,7 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	usersController "neeft_back/app/controllers/users"
-	"neeft_back/app/models/teams"
-	usersModel "neeft_back/app/models/users"
+	usersModel "neeft_back/app/models"
 	"neeft_back/database"
 )
 
@@ -25,29 +24,25 @@ type TeamSerialize struct {
 }
 
 // CreateResponseTeam  /**
-func CreateResponseTeam(userModel usersModel.User, teamModel teams.Team) TeamSerialize {
-	return TeamSerialize{
-		ID:              teamModel.ID,
-		User:            userModel,
-		Name:            teamModel.Name,
-		UserCount:       teamModel.UserCount,
-		GameName:        teamModel.GameName,
-		TournamentCount: teamModel.TournamentCount,
-	}
+func CreateResponseTeam(userModel usersModel.User, teamModel usersModel.Team) usersModel.Team {
+	return teamModel
 }
 
 // CreateTeam function to create a team
 func CreateTeam(c *fiber.Ctx) error {
-	var team teams.Team
+	var team usersModel.Team
 
 	if err := c.BodyParser(&team); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
 	}
 
 	var user usersModel.User
-	if err := usersController.FindUser(team.UserId, &user); err != nil {
+	if err := usersController.FindUser(team.OwnerId, &user); err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
 	}
+
+	// We set those values back to default because the clients shouldn't touch it in the first place
+	team.IsBanned = false
 
 	database.Database.Db.Create(&team)
 
@@ -57,12 +52,12 @@ func CreateTeam(c *fiber.Ctx) error {
 
 // GetAllTeam function to get all teams
 func GetAllTeam(c *fiber.Ctx) error {
-	var teamsModel []teams.Team
+	var teamsModel []usersModel.Team
 	database.Database.Db.Find(&teamsModel)
-	var responseTeams []TeamSerialize
+	var responseTeams []usersModel.Team
 	for _, team := range teamsModel {
 		var user usersModel.User
-		database.Database.Db.Find(&user, "id = ?", team.UserId)
+		database.Database.Db.Find(&user, "id = ?", team.OwnerId)
 		responseTeam := CreateResponseTeam(user, team)
 		responseTeams = append(responseTeams, responseTeam)
 	}
@@ -71,7 +66,7 @@ func GetAllTeam(c *fiber.Ctx) error {
 }
 
 // FindTeam function to update a team
-func FindTeam(id int, team *teams.Team) error {
+func FindTeam(id int, team *usersModel.Team) error {
 	database.Database.Db.Find(&team, "id = ?", id)
 	if team.ID == 0 {
 		return errors.New("team does not exist")
@@ -83,7 +78,7 @@ func FindTeam(id int, team *teams.Team) error {
 func GetTeam(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
-	var team teams.Team
+	var team usersModel.Team
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")
@@ -94,7 +89,7 @@ func GetTeam(c *fiber.Ctx) error {
 	}
 
 	var user usersModel.User
-	database.Database.Db.First(&user, team.UserId)
+	database.Database.Db.First(&user, team.OwnerId)
 	responseTeam := CreateResponseTeam(user, team)
 
 	return c.Status(200).JSON(responseTeam)
@@ -104,7 +99,7 @@ func GetTeam(c *fiber.Ctx) error {
 func DeleteTeam(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
-	var team teams.Team
+	var team usersModel.Team
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")

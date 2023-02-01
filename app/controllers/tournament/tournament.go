@@ -7,9 +7,8 @@ package tournament
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
-	"neeft_back/app/models/tournaments"
+	"neeft_back/app/models"
 	"neeft_back/database"
-	"time"
 )
 
 // TournamentSerialize serializer
@@ -25,26 +24,20 @@ type TournamentSerialize struct {
 }
 
 // CreateResponseTournament /**
-func CreateResponseTournament(tournamentModel tournaments.Tournament) TournamentSerialize {
-	return TournamentSerialize{
-		ID:         tournamentModel.ID,
-		Name:       tournamentModel.Name,
-		Count:      tournamentModel.Count,
-		Price:      tournamentModel.Price,
-		Game:       tournamentModel.Game,
-		TeamsCount: tournamentModel.TeamsCount,
-		IsFinished: tournamentModel.IsFinished,
-		Mode:       tournamentModel.Mode,
-	}
+func CreateResponseTournament(tournamentModel models.Tournament) models.Tournament {
+	return tournamentModel
 }
 
 // CreateTournament function to create a new tournament
 func CreateTournament(c *fiber.Ctx) error {
-	var tournament tournaments.Tournament
+	var tournament models.Tournament
 
 	if err := c.BodyParser(&tournament); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
+
+	// Default values
+	tournament.IsFinished = false
 
 	database.Database.Db.Create(&tournament)
 	responseTournament := CreateResponseTournament(tournament)
@@ -53,9 +46,9 @@ func CreateTournament(c *fiber.Ctx) error {
 
 // GetAllTournament function to get all users in the database
 func GetAllTournament(c *fiber.Ctx) error {
-	var allTournament []tournaments.Tournament
+	var allTournament []models.Tournament
 	database.Database.Db.Find(&allTournament)
-	var responseTournaments []TournamentSerialize
+	var responseTournaments []models.Tournament
 	for _, tournament := range allTournament {
 		responseTournament := CreateResponseTournament(tournament)
 		responseTournaments = append(responseTournaments, responseTournament)
@@ -64,7 +57,7 @@ func GetAllTournament(c *fiber.Ctx) error {
 }
 
 // FindTournament function to find a user by id in the database
-func FindTournament(id int, tournament *tournaments.Tournament) error {
+func FindTournament(id int, tournament *models.Tournament) error {
 	database.Database.Db.Find(&tournament, "id = ?", id)
 	if tournament.ID == 0 {
 		return errors.New("tournament does not exist")
@@ -76,7 +69,7 @@ func FindTournament(id int, tournament *tournaments.Tournament) error {
 func GetTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
-	var tournament tournaments.Tournament
+	var tournament models.Tournament
 
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")
@@ -95,7 +88,7 @@ func GetTournament(c *fiber.Ctx) error {
 func UpdateTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
-	var tournament tournaments.Tournament
+	var tournament models.Tournament
 
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
@@ -107,31 +100,14 @@ func UpdateTournament(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	type UpdateTournament struct {
-		Name       string `json:"name"`
-		Count      uint   `json:"count"`
-		Price      uint   `json:"price"`
-		Game       string `json:"game"`
-		TeamsCount uint   `json:"teamsCount"`
-		IsFinished bool   `json:"isFinished"`
-		Mode       string `json:"mode"`
-		Updated_at time.Time
-	}
-
-	var updateData UpdateTournament
+	var updateData models.Tournament
 
 	if err := c.BodyParser(&updateData); err != nil {
 		return c.Status(500).JSON(err.Error())
 	}
 
-	tournament.Name = updateData.Name
-	tournament.Count = updateData.Count
-	tournament.Price = updateData.Price
-	tournament.Game = updateData.Game
-	tournament.TeamsCount = updateData.TeamsCount
-	tournament.IsFinished = updateData.IsFinished
-	tournament.Mode = updateData.Mode
-	tournament.Updated_at = updateData.Updated_at
+	// Resetting values that clients shouldn't modify
+	updateData.IsFinished = tournament.IsFinished
 
 	database.Database.Db.Save(&tournament)
 
@@ -145,7 +121,7 @@ func UpdateTournament(c *fiber.Ctx) error {
 func DeleteTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
-	var tournament tournaments.Tournament
+	var tournament models.Tournament
 
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
