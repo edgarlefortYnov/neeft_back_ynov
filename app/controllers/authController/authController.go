@@ -1,10 +1,11 @@
 package authController
 
 import (
-	"github.com/go-playground/validator/v10"
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"neeft_back/app/config"
+	usersController "neeft_back/app/controllers/users"
+	"neeft_back/app/formValidation"
 	"neeft_back/app/helper"
 	"neeft_back/app/models"
 	"neeft_back/database"
@@ -17,65 +18,24 @@ import (
  * @Author ANYARONKE Dare Samuel
  */
 
-type ErrorResponse struct {
-	FailedField string
-	Tag         string
-	Value       string
-}
-
-// validate user information
-func validateUserInformation(userInformation *models.User) []*ErrorResponse {
-	var errors []*ErrorResponse
-	var validateForm = validator.New()
-
-	// Validate the user information
-	err := validateForm.Struct(userInformation)
-
-	if err != nil {
-		for _, err := range err.(validator.ValidationErrors) {
-			errors = append(errors, &ErrorResponse{
-				FailedField: err.Field(),
-				Tag:         err.Tag(),
-				Value:       err.Param(),
-			})
-		}
-	}
-
-	return errors
-}
-
-// EmailExist : Check if the email already exist in the database
-func EmailExist(email string) bool {
-	var user models.User
-	if err := database.Database.Db.Find(&user, "email = ?", email).First(&user).Error; err != nil {
-		return false
-	}
-	return true
-}
-
 // Register : Register a new user
 func Register(c *fiber.Ctx) error {
 	userInformation := new(models.User)
-
 	// Get the user information from the request body
 	if err := c.BodyParser(userInformation); err != nil {
 		return helper.Return400(c, "Invalid user information")
 	}
-
 	// Validate the user information and return the errors if there is any error in the user information provided by the user in the request body (email, username, password, etc...)
-	errors := validateUserInformation(userInformation)
+	errors := formValidation.ValidateUserInformation(userInformation)
 	if errors != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
-
 	// Check if the user already exist
-	if EmailExist(userInformation.Email) {
-		return helper.Return400(c, "Email already exist")
+	if helper.UserExist(userInformation.Email, userInformation.Username, userInformation.FirstName, userInformation.LastName) {
+		return helper.Return400(c, "Email  or username or fist and last name already exist")
 	}
-
 	// Hash the password
 	hashedPassword := helper.HashAndSalt([]byte(userInformation.Password))
-	// TODO lastUserAgent ?
 	userInformation.LastUserAgent = string(c.Request().Header.UserAgent())
 	// Create the user in the database
 	user := models.User{
@@ -89,17 +49,14 @@ func Register(c *fiber.Ctx) error {
 		IsSuperAdmin:  false,
 	}
 	database.Database.Db.Create(&user)
-
 	// assign the user to the default role
 	// TODO: Fix this part not working
-
 	/*
 		err := usersController.AssignRoleToUser(c, 1, uint(models.GUEST_ROLE))
 		if err != nil {
 			return err
 		}
 	*/
-
 	// Send message to the user that the account has been created successfully
 	return helper.Return200(c, "User created successfully")
 }
@@ -131,7 +88,6 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Check if the user has the same user agent as stored
-	// TODO LastUserAgent ??
 	if user.LastUserAgent != string(c.Request().Header.UserAgent()) {
 		return helper.Return401(c, "User Agent has changed")
 	}

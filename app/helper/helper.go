@@ -8,8 +8,44 @@ import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
 	"golang.org/x/crypto/bcrypt"
+	"neeft_back/app/models"
+	"neeft_back/database"
 	"regexp"
 )
+
+//---------------------Auth ---------------------//
+
+// UsernameExist check if username exist
+func UsernameExist(username string) bool {
+	var user models.User
+	if err := database.Database.Db.Find(&user, "username = ?", username).First(&user).Error; err != nil {
+		return false
+	}
+	return true
+}
+
+// FirstnameLastnameExist check if the name and surname combine exist in the database
+func FirstnameLastnameExist(name string, surname string) bool {
+	var user models.User
+	if err := database.Database.Db.Find(&user, "first_name = ? AND last_name = ?", name, surname).First(&user).Error; err != nil {
+		return false
+	}
+	return true
+}
+
+// EmailExist : Check if the email already exist in the database
+func EmailExist(email string) bool {
+	var user models.User
+	if err := database.Database.Db.Find(&user, "email = ?", email).First(&user).Error; err != nil {
+		return false
+	}
+	return true
+}
+
+// UserExist check if the user exist
+func UserExist(email string, username string, firstname string, lastname string) bool {
+	return EmailExist(email) || UsernameExist(username) || FirstnameLastnameExist(firstname, lastname)
+}
 
 // HandleErr is a helper function to handle errors
 func HandleErr(err error) {
@@ -39,7 +75,7 @@ func CheckEmail(email string) (bool, error) {
 		return false, errors.New("L'email est trop court ou trop long")
 	}
 	if m, _ := regexp.MatchString("^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,4}$", email); !m {
-		return false, errors.New("L'email n'est pas valide")
+		return false, errors.New("l'email n'est pas valide")
 	}
 	return true, nil
 }
