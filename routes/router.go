@@ -14,9 +14,9 @@ func SetupRouters(app *fiber.App) {
 
 	//------------------ Auth ---------------------
 	api := app.Group("/api")
+	api.Post("/player/register", authController.Register)
 	api.Post("/player/login", authController.Login)
 	api.Post("/player/refresh-login", authController.RefreshLogin)
-	api.Post("/player/register", users.CreateUser)
 
 	auth := api.Use(middleware.VerifyJWT)
 
@@ -36,11 +36,13 @@ func SetupRouters(app *fiber.App) {
 	auth.Post("/team", teams.CreateTeam)
 	auth.Get("/teams", teams.GetAllTeam)
 	auth.Get("/team/:id", teams.GetTeam)
+	auth.Put("/team/:id", teams.UpdateTeam)
 
 	////------------------ Tournaments ------------------
 	auth.Post("/tournament", tournament.CreateTournament)
 	auth.Get("/tournaments", tournament.GetAllTournament)
 	auth.Get("/tournament/:id", tournament.GetTournament)
+	auth.Put("/tournament/:id", tournament.UpdateTournament)
 	auth.Delete("/tournament/:id", tournament.DeleteTournament)
 
 	// Debug

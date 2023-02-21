@@ -100,11 +100,17 @@ func UpdateTournament(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
+	if tournament.ID == 0 {
+		return c.Status(400).JSON("invalid tournament")
+	}
+
 	var updateData models.Tournament
 
 	if err := c.BodyParser(&updateData); err != nil {
 		return c.Status(500).JSON(err.Error())
 	}
+
+	tournament = updateData
 
 	// Resetting values that clients shouldn't modify
 	updateData.IsFinished = tournament.IsFinished
