@@ -121,6 +121,10 @@ func UpdateTeam(c *fiber.Ctx) error {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
 	}
 
+	if id == 0 {
+		return c.Status(400).JSON("Invalid team ID")
+	}
+
 	var team usersModel.Team
 
 	err = FindTeam(id, &team)
