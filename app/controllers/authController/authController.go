@@ -5,7 +5,6 @@ import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/golang-jwt/jwt/v4"
 	"neeft_back/app/config"
-	usersController "neeft_back/app/controllers/users"
 	"neeft_back/app/helper"
 	"neeft_back/app/models"
 	"neeft_back/database"
@@ -79,21 +78,27 @@ func Register(c *fiber.Ctx) error {
 
 	// Create the user in the database
 	user := models.User{
-		Username:     userInformation.Username,
-		FirstName:    userInformation.FirstName,
-		LastName:     userInformation.LastName,
-		Email:        userInformation.Email,
-		Password:     hashedPassword,
-		IsBan:        false,
-		IsSuperAdmin: false,
+		Username:      userInformation.Username,
+		FirstName:     userInformation.FirstName,
+		LastName:      userInformation.LastName,
+		Email:         userInformation.Email,
+		Password:      hashedPassword,
+		LastUserAgent: string(c.Request().Header.UserAgent()),
+		IsBan:         false,
+		IsSuperAdmin:  false,
 	}
 	database.Database.Db.Create(&user)
 
 	// assign the user to the default role
-	err := usersController.AssignRoleToUser(c, 1, uint(models.GUEST_ROLE))
-	if err != nil {
-		return err
-	}
+	// TODO: Fix this part not working
+
+	/*
+		err := usersController.AssignRoleToUser(c, 1, uint(models.GUEST_ROLE))
+		if err != nil {
+			return err
+		}
+	*/
+
 	// Send message to the user that the account has been created successfully
 	return helper.Return200(c, "User created successfully")
 }

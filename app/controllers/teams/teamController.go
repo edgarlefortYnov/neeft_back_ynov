@@ -113,3 +113,37 @@ func DeleteTeam(c *fiber.Ctx) error {
 
 	return c.Status(200).JSON("Team deleted successfully")
 }
+
+func UpdateTeam(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	var team usersModel.Team
+
+	err = FindTeam(id, &team)
+
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	if team.ID == 0 {
+		return c.Status(400).JSON("invalid team")
+	}
+
+	var input usersModel.Team
+
+	if err := c.BodyParser(&input); err != nil {
+		return c.Status(500).JSON(err.Error())
+	}
+
+	// The input should not have an ID, so we take it from the request
+	team = input
+	team.ID = uint(id)
+
+	database.Database.Db.Save(&team)
+
+	return c.Status(200).JSON(team)
+}
