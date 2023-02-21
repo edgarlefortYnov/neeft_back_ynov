@@ -76,16 +76,18 @@ func Register(c *fiber.Ctx) error {
 
 	// Hash the password
 	hashedPassword := helper.HashAndSalt([]byte(userInformation.Password))
-
+	// TODO lastUserAgent ?
+	userInformation.LastUserAgent = string(c.Request().Header.UserAgent())
 	// Create the user in the database
 	user := models.User{
-		Username:     userInformation.Username,
-		FirstName:    userInformation.FirstName,
-		LastName:     userInformation.LastName,
-		Email:        userInformation.Email,
-		Password:     hashedPassword,
-		IsBan:        false,
-		IsSuperAdmin: false,
+		Username:      userInformation.Username,
+		FirstName:     userInformation.FirstName,
+		LastName:      userInformation.LastName,
+		Email:         userInformation.Email,
+		Password:      hashedPassword,
+		LastUserAgent: userInformation.LastUserAgent,
+		IsBan:         false,
+		IsSuperAdmin:  false,
 	}
 	database.Database.Db.Create(&user)
 
@@ -125,6 +127,7 @@ func Login(c *fiber.Ctx) error {
 	}
 
 	// Check if the user has the same user agent as stored
+	// TODO LastUserAgent ??
 	if user.LastUserAgent != string(c.Request().Header.UserAgent()) {
 		return helper.Return401(c, "User Agent has changed")
 	}
@@ -163,6 +166,7 @@ func Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
+		"user":          usersController.CreateResponseUser(user),
 	})
 }
 
