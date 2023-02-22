@@ -1,9 +1,5 @@
 package helper
 
-/**
- * @Author: ANYARONKE Dare Samuel
- */
-
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -18,37 +14,43 @@ import (
 // UsernameExist check if username exist
 func UsernameExist(username string) bool {
 	var user models.User
+
 	if err := database.Database.Db.Find(&user, "username = ?", username).First(&user).Error; err != nil {
 		return false
 	}
+
 	return true
 }
 
-// FirstnameLastnameExist check if the name and surname combine exist in the database
-func FirstnameLastnameExist(name string, surname string) bool {
+// FirstNameOrLastNameExists check if the name and surname combine exist in the database
+func FirstNameOrLastNameExists(firstname string, lastname string) bool {
 	var user models.User
-	if err := database.Database.Db.Find(&user, "first_name = ? AND last_name = ?", name, surname).First(&user).Error; err != nil {
+
+	if err := database.Database.Db.Find(&user, "first_name = ? AND last_name = ?", firstname, lastname).First(&user).Error; err != nil {
 		return false
 	}
+
 	return true
 }
 
 // EmailExist : Check if the email already exist in the database
 func EmailExist(email string) bool {
 	var user models.User
+
 	if err := database.Database.Db.Find(&user, "email = ?", email).First(&user).Error; err != nil {
 		return false
 	}
+
 	return true
 }
 
 // UserExist check if the user exist
 func UserExist(email string, username string, firstname string, lastname string) bool {
-	return EmailExist(email) || UsernameExist(username) || FirstnameLastnameExist(firstname, lastname)
+	return EmailExist(email) || UsernameExist(username) || FirstNameOrLastNameExists(firstname, lastname)
 }
 
-// HandleErr is a helper function to handle errors
-func HandleErr(err error) {
+// HandleError is a helper function to handle errors
+func HandleError(err error) {
 	if err != nil {
 		panic(err.Error())
 	}
@@ -57,25 +59,29 @@ func HandleErr(err error) {
 // HashAndSalt is a helper function to hash and salt a password
 func HashAndSalt(pwd []byte) string {
 	hash, err := bcrypt.GenerateFromPassword(pwd, bcrypt.MinCost)
-	HandleErr(err)
+
+	HandleError(err)
+
 	return string(hash)
 }
 
 func ComparePasswords(hashedPwd string, plainPwd []byte) bool {
 	byteHash := []byte(hashedPwd)
 	err := bcrypt.CompareHashAndPassword(byteHash, plainPwd)
+
 	if err != nil {
 		return false
 	}
+
 	return true
 }
 
 func CheckEmail(email string) (bool, error) {
 	if len(email) < 3 && len(email) > 254 {
-		return false, errors.New("L'email est trop court ou trop long")
+		return false, errors.New("invalid email size")
 	}
 	if m, _ := regexp.MatchString("^[a-z0-9._%+\\-]+@[a-z0-9.\\-]+\\.[a-z]{2,4}$", email); !m {
-		return false, errors.New("l'email n'est pas valide")
+		return false, errors.New("invalid email")
 	}
 	return true, nil
 }

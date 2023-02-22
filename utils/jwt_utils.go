@@ -14,14 +14,14 @@ func CheckJWT(ctx *fiber.Ctx, decodedClaims *config.JWTClaims) error {
 	tokenParts := strings.Split(ctx.Get("Authorization", ""), " ")
 
 	if len(tokenParts) != 2 {
-		return errors.New("not authorized")
+		return errors.New("CheckJWT: not authorized")
 	}
 
 	authMethod := tokenParts[0]
 	token := tokenParts[1]
 
 	if authMethod != "Bearer" {
-		return errors.New("only bearer authorization is supported")
+		return errors.New("CheckJWT: only bearer authorization is supported")
 	}
 
 	claims := config.JWTClaims{}
@@ -37,10 +37,10 @@ func CheckJWT(ctx *fiber.Ctx, decodedClaims *config.JWTClaims) error {
 		*decodedClaims = *tokenClaims
 
 		if time.Now().Unix() > decodedClaims.ExpiresAt.Unix() {
-			return errors.New("token is expired")
+			return errors.New("CheckJWT: token is expired")
 		}
 		return nil
 	} else {
-		return errors.New("invalid JWT token")
+		return errors.New("CheckJWT: invalid JWT token")
 	}
 }

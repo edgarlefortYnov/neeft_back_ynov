@@ -12,9 +12,11 @@ import (
 
 func FindUserByClaim(claims config.JWTClaims, user *users.User) error {
 	database.Database.Db.Find(&user, "id = ?", claims.UserId)
+
 	if user.ID == 0 {
 		return errors.New("user does not exist")
 	}
+
 	return nil
 }
 

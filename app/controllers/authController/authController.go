@@ -14,37 +14,40 @@ import (
 	"time"
 )
 
-/**
- * @Author ANYARONKE Dare Samuel
- */
-
 // Register : Register a new user
 func Register(c *fiber.Ctx) error {
 	var userInformation models.User
+
 	// Get the user information from the request body
 	if err := c.BodyParser(&userInformation); err != nil {
 		return helper.Return400(c, "Invalid user information")
 	}
+
 	// Validate the user information and return the errors if there is any error in the user information provided by the user in the request body (email, username, password, etc...)
 	errors := formValidation.ValidateUserInformation(userInformation)
 	if errors != nil {
 		return c.Status(fiber.StatusBadRequest).JSON(errors)
 	}
+
 	// Check if the user already exist
 	if helper.UserExist(userInformation.Email, userInformation.Username, userInformation.FirstName, userInformation.LastName) {
-		return helper.Return400(c, "Email  or username or fist and last name already exist")
+		return helper.Return400(c, "This user already exist")
 	}
+
 	// Hash the password
 	hashedPassword := helper.HashAndSalt([]byte(userInformation.Password))
 	userInformation.LastUserAgent = string(c.Request().Header.UserAgent())
+
 	// Create the user in the database
 	Db := database.Database.Db
 	userInformation.CreatedAt = time.Now()
 	userInformation.Password = hashedPassword
 	err := models.Create(Db, userInformation)
+
 	if err != nil {
 		return helper.Return500(c, err.Error())
 	}
+
 	// assign the user to the default role
 	err = usersController.AssignRoleToUser(c, userInformation.ID, 12)
 	if err != nil {
@@ -57,7 +60,6 @@ func Register(c *fiber.Ctx) error {
 
 // Login : Login a user and return a token to be used for authentication
 func Login(c *fiber.Ctx) error {
-
 	userInformation := new(models.User)
 
 	// Get the user information from the request body
@@ -120,7 +122,7 @@ func Login(c *fiber.Ctx) error {
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,
-		"user":          usersController.CreateResponseUser(user),
+		"user":          usersController.NewUserResponse(user),
 	})
 }
 

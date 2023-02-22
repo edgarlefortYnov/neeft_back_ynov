@@ -1,15 +1,12 @@
 package models
 
-/**
- * @Author ANYARONKE
- */
-
 import (
+	"gorm.io/gorm"
 	"time"
 )
 
 type Tournament struct {
-	ID         uint      `json:"id" gorm:"primaryKey"`
+	gorm.Model
 	Name       string    `gorm:"varchar(255)" json:"name"`
 	Price      uint      `gorm:"int" json:"price"`
 	GameId     int       `gorm:"not null" json:"gameId"`
@@ -22,8 +19,4 @@ type Tournament struct {
 	Mode       string    `gorm:"varchar(255)" json:"mode"`
 	StartDate  time.Time `gorm:"datetime nullable" json:"startDate"`
 	EndDate    time.Time `gorm:"datetime nullable" json:"endDate"`
-
-	Created_at time.Time
-	Updated_at time.Time
-	Deleted_at time.Time
 }

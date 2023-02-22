@@ -9,46 +9,43 @@ import (
 	"neeft_back/middleware"
 )
 
-func SetupRouters(app *fiber.App) {
-
-	//------------------ Auth ---------------------
+func RegisterRoutes(app *fiber.App) {
 	api := app.Group("/api")
 
+	// Authentication
 	app.Post("/api/player/register", authController.Register)
 	app.Post("/api/player/login", authController.Login)
 	app.Post("/refresh-login", authController.RefreshLogin)
 
-	// Need to be logged in to access the routes below
-	api.Use(middleware.VerifyJWT)
+	// Following routes will require JWT authentication
+	auth := api.Use(middleware.VerifyJWT)
 
-	api.Post("/refresh-login", authController.RefreshLogin)
+	// Refresh login
+	auth.Post("/refresh-login", authController.RefreshLogin)
 
-	//------------------ Users ------------------
-	api.Post("/user", users.CreateUser)
-	api.Get("/users", users.GetAllUser)
-	api.Get("/user/:id", users.GetUser)
-	api.Put("/user/:id", users.UpdateUser)
-	api.Delete("/user/:id", users.DeleteUser)
+	// Users management
+	auth.Get("/users", users.GetAllUser)
+	auth.Get("/user/:id", users.GetUser)
+	auth.Put("/user/:id", users.UpdateUser)
+	auth.Delete("/user/:id", users.DeleteUser)
 
-	//------------------ Users Role ------------------
-	api.Post("/role", users.CreateRole)
-	api.Get("/roles", users.GetRoles)
-	////------------------ Users Friend ------------------
-	api.Post("/friend", users.CreateUserFriend)
-	api.Get("/show-friend/:id", users.GetUserFriends)
+	// Users roles
+	auth.Post("/role", users.CreateRole)
+	auth.Get("/roles", users.GetRoles)
 
-	////------------------ Teams ------------------
+	// Users friends
+	auth.Post("/friend", users.CreateUserFriend)
+	auth.Get("/show-friend/:id", users.GetUserFriends)
 
-	api.Post("/team", teams.CreateTeam)
-	api.Get("/teams", teams.GetAllTeam)
-	api.Get("/team/:id", teams.GetTeam)
-	//
-	//	////------------------ Tournaments ------------------
-	api.Post("/tournament", tournament.CreateTournament)
-	api.Get("/tournaments", tournament.GetAllTournament)
-	api.Get("/tournament/:id", tournament.GetTournament)
-	api.Delete("/tournament/:id", tournament.DeleteTournament)
+	// Teams management
+	auth.Post("/team", teams.CreateTeam)
+	auth.Get("/teams", teams.GetTeams)
+	auth.Get("/team/:id", teams.GetTeam)
+	auth.Put("/team/:id", teams.UpdateTeam)
 
-	// Debug
-	// api.Get("/jwt/debug", users.JWTDebug)
+	// Tournaments management
+	auth.Post("/tournament", tournament.CreateTournament)
+	auth.Get("/tournaments", tournament.GetAllTournaments)
+	auth.Get("/tournament/:id", tournament.GetTournament)
+	auth.Delete("/tournament/:id", tournament.DeleteTournament)
 }

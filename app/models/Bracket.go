@@ -1,10 +1,9 @@
 package models
 
-import (
-	"time"
-)
+import "gorm.io/gorm"
 
 type Bracket struct {
+	gorm.Model
 	ID           uint       `gorm:"primaryKey"   json:"id" `
 	TeamId1      uint       `gorm:"not null" json:"teamId1"`
 	Team1        Team       `gorm:"foreignkey:TeamId1"`
@@ -16,8 +15,4 @@ type Bracket struct {
 	WinTeam      Team       `gorm:"foreignkey:WinTeamId"`
 	StatusGame   uint       `gorm:"not null" json:"statusGame"`
 	Round        uint       `gorm:"not null" json:"round"`
-
-	Created_at time.Time
-	Updated_at time.Time
-	Deleted_at time.Time
 }

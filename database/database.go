@@ -9,22 +9,18 @@ import (
 	"gorm.io/gorm/logger"
 )
 
-/**
- * @Author ANYARONKE Dare Samuel
- */
-
-// DbInstance : database pointer
-type DbInstance struct {
+// StaticDatabaseInstance : database pointer
+type StaticDatabaseInstance struct {
 	Db *gorm.DB
 }
 
 // Database : object instance
-var Database DbInstance
+var Database StaticDatabaseInstance
 
 const DNS string = "bbce14802e2bf7:765f916b@tcp(eu-cdbr-west-03.cleardb.net:3306)/heroku_9a62a0aad140d17?charset=utf8mb4&parseTime=True&loc=Local"
 
-// ConnectDb : Connection to the database
-func ConnectDb() {
+// ConnectToDatabase : Connect to the database
+func ConnectToDatabase() {
 	db, err := gorm.Open(mysql.Open(DNS), &gorm.Config{})
 
 	if err != nil {
@@ -32,11 +28,12 @@ func ConnectDb() {
 		os.Exit(2)
 	}
 
-	log.Println("Connected Successfully to Database")
+	log.Println("Successfully connected to the database")
 	db.Logger = logger.Default.LogMode(logger.Info)
-	log.Println("Running Migrations")
+	log.Println("Running migrations")
 
-	// Launch of the database migration
+	// Launch the database migration
 	RunMigration(db)
-	Database = DbInstance{Db: db}
+
+	Database = StaticDatabaseInstance{Db: db}
 }

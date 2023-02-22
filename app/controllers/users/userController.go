@@ -1,9 +1,5 @@
 package users
 
-/**
- * @Author ANYARONKE Daré Samuel
- */
-
 import (
 	"errors"
 	"neeft_back/app/helper"
@@ -14,9 +10,8 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
-// UserSerialize User : this is the router for the users not the model of User
-// UserSerialize serializer
-type UserSerialize struct {
+// SerializedUserResponse User : this is the router for the users not the model of User
+type SerializedUserResponse struct {
 	ID             uint                  `json:"id"`
 	Username       string                `json:"username"`
 	Email          string                `json:"email"`
@@ -25,9 +20,9 @@ type UserSerialize struct {
 	Status         string                `json:"status"`
 }
 
-// CreateResponseUser /**
-func CreateResponseUser(userModel models.User) UserSerialize {
-	return UserSerialize{
+// NewUserResponse /**
+func NewUserResponse(userModel models.User) SerializedUserResponse {
+	return SerializedUserResponse{
 		ID:       userModel.ID,
 		Username: userModel.Username,
 		Email:    userModel.Email,
@@ -57,9 +52,9 @@ func CreateUser(c *fiber.Ctx) error {
 func GetAllUser(c *fiber.Ctx) error {
 	Db := database.Database.Db
 	users, _ := models.Users(Db)
-	var responseUsers []UserSerialize
+	var responseUsers []SerializedUserResponse
 	for _, user := range users {
-		responseUser := CreateResponseUser(user)
+		responseUser := NewUserResponse(user)
 		responseUsers = append(responseUsers, responseUser)
 	}
 	return c.Status(200).JSON(responseUsers)
@@ -84,12 +79,12 @@ func GetUser(c *fiber.Ctx) error {
 	}
 	// Find the user
 	Db := database.Database.Db
-	user, err := models.GetUserWithRelationShip(Db, uint(id))
+	user, err := models.GetUserWithRelationship(Db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 	// Return the user
-	responseUser := CreateResponseUser(user)
+	responseUser := NewUserResponse(user)
 	return c.Status(200).JSON(responseUser)
 }
 
@@ -101,7 +96,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	}
 
 	Db := database.Database.Db
-	err = models.GetUser(Db, uint(id))
+	_, err = models.GetUser(Db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
@@ -116,7 +111,7 @@ func UpdateUser(c *fiber.Ctx) error {
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-	responseUser := CreateResponseUser(userUpdate)
+	responseUser := NewUserResponse(userUpdate)
 	return c.Status(200).JSON(responseUser)
 	// TODO: End to review
 }
@@ -129,7 +124,7 @@ func DeleteUser(c *fiber.Ctx) error {
 	}
 
 	Db := database.Database.Db
-	err = models.GetUser(Db, uint(id))
+	_, err = models.GetUser(Db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}

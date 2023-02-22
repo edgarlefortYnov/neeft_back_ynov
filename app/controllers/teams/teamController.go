@@ -1,92 +1,98 @@
 package teams
 
-/**
- * @Author: ANYARONKE Daré Samuel
- */
-
 import (
 	"github.com/gofiber/fiber/v2"
 	"neeft_back/app/models"
 	"neeft_back/database"
 )
 
-// TeamSerialize  User : this is the router for the users not the model of User
-// TeamSerialize serializer
-type TeamSerialize struct {
-	ID          uint        `json:"id"`
-	Name        string      `json:"name"`
-	UserCount   uint        `json:"userCount"`
-	IsBanned    bool        `json:"isBanned"`
-	Description string      `json:"description"`
-	OwnerId     models.User `json:"ownerId"`
-	Type        string      `json:"type"`
+// SerializedTeamResponse the structure of a team that is sent back to the client
+type SerializedTeamResponse struct {
+	ID          uint   `json:"id"`
+	Name        string `json:"name"`
+	UserCount   uint   `json:"userCount"`
+	IsBanned    bool   `json:"isBanned"`
+	Description string `json:"description"`
+	Type        string `json:"type"`
 }
 
-// CreateResponseTeam  /**
-func CreateResponseTeam(userModel models.User, teamModel models.Team) TeamSerialize {
-	return TeamSerialize{
+// NewSerializedTeamResponse  /**
+func NewSerializedTeamResponse(userModel models.User, teamModel models.Team) SerializedTeamResponse {
+	return SerializedTeamResponse{
 		ID:          teamModel.ID,
 		UserCount:   teamModel.MaxMembers,
 		Name:        teamModel.Name,
 		IsBanned:    teamModel.IsBanned,
 		Description: teamModel.Description,
-		OwnerId:     models.User{Username: userModel.Username},
 		Type:        teamModel.Type,
 	}
 }
 
 // CreateTeam function to create a team
 func CreateTeam(c *fiber.Ctx) error {
-	Db := database.Database.Db
+	db := database.Database.Db
+
 	var team models.Team
 	if err := c.BodyParser(&team); err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON("CreateTeam: " + err.Error())
 	}
 
-	user, err := models.GetUserWithRelationShip(Db, uint(team.OwnerId))
+	user, err := models.GetUser(db, team.OwnerId)
 	if err != nil {
-		return c.Status(fiber.StatusBadRequest).JSON(err.Error())
+		return c.Status(fiber.StatusBadRequest).JSON("GetUserWithRelationship: " + err.Error())
 	}
-	// create a new team
+
+	// A team can't be banned when it is created
 	team.IsBanned = false
-	err = models.CreateNewTeam(Db, team)
-	responseTeam := CreateResponseTeam(user, team)
-	return c.Status(200).JSON(responseTeam)
+	err = models.CreateNewTeam(db, &team)
+
+	if err != nil {
+		return c.Status(fiber.StatusBadRequest).JSON("CreateNewTeam: " + err.Error())
+	}
+
+	return c.Status(200).JSON(NewSerializedTeamResponse(user, team))
 }
 
-// GetAllTeam function to get all teams
-func GetAllTeam(c *fiber.Ctx) error {
+// GetTeams function to get all teams
+func GetTeams(c *fiber.Ctx) error {
+	db := database.Database.Db
 
-	Db := database.Database.Db
-	teams, _ := models.Teams(Db)
-	var responseTeams []TeamSerialize
+	teams, _ := models.Teams(db)
+
+	var responseTeams []SerializedTeamResponse
 	for _, team := range teams {
 		var user models.User
-		Db.Find(&user, "id = ?", team.OwnerId)
-		responseTeam := CreateResponseTeam(user, team)
+		db.Find(&user, "id = ?", team.OwnerId)
+		responseTeam := NewSerializedTeamResponse(user, team)
 		responseTeams = append(responseTeams, responseTeam)
 	}
+
 	return c.Status(200).JSON(responseTeams)
 }
 
-// GetOnerTeam function to get a team
-func GetOnerTeam(c *fiber.Ctx) error {
+// GetTeamFromOwnerId function to get a team
+func GetTeamFromOwnerId(c *fiber.Ctx) error {
 	// Get the id from the url
 	ownerId, err := c.ParamsInt("id")
+
 	// Check if the id is valid
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")
 	}
+
 	// Find the user
-	Db := database.Database.Db
-	team, err := models.GetTeamByOwnerId(Db, uint(ownerId))
+	db := database.Database.Db
+	team, err := models.GetTeamByOwnerId(db, uint(ownerId))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
+
 	// Return the user
 	var user models.User
-	Db.Find(&user, "id = ?", team.OwnerId)
-	responseTeam := CreateResponseTeam(user, team)
+	db.Find(&user, "id = ?", team.OwnerId)
+
+	responseTeam := NewSerializedTeamResponse(user, team)
+
 	return c.Status(200).JSON(responseTeam)
 }
 
@@ -107,7 +113,7 @@ func GetTeam(c *fiber.Ctx) error {
 	// Return the user
 	var user models.User
 	Db.Find(&user, "id = ?", team.OwnerId)
-	responseTeam := CreateResponseTeam(user, team)
+	responseTeam := NewSerializedTeamResponse(user, team)
 	return c.Status(200).JSON(responseTeam)
 }
 
@@ -128,7 +134,7 @@ func DeleteTeam(c *fiber.Ctx) error {
 	if err = models.DeleteTeam(Db, uint(id)); err != nil {
 		return c.Status(404).JSON(err.Error())
 	}
-	return c.Status(200).JSON("Successfully deleted User")
+	return c.Status(200).JSON("Successfully deleted user")
 }
 
 func UpdateTeam(c *fiber.Ctx) error {
@@ -137,8 +143,8 @@ func UpdateTeam(c *fiber.Ctx) error {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
 	}
 
-	Db := database.Database.Db
-	err = models.GetTeam(Db, uint(id))
+	db := database.Database.Db
+	err = models.GetTeam(db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
@@ -150,14 +156,18 @@ func UpdateTeam(c *fiber.Ctx) error {
 		return c.Status(500).JSON(err.Error())
 	}
 
-	team, err := models.UpdateTeam(Db, updateData)
-	if err != nil {
-		return err
+	updateData.ID = uint(id)
+
+	team, err := models.UpdateTeam(db, updateData)
+
+	if team.ID == 0 {
+		return c.Status(500).JSON("An unknown error occurred")
 	}
+
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-	responseUser := CreateResponseTeam(user, team)
-	return c.Status(200).JSON(responseUser)
 
+	teamResponse := NewSerializedTeamResponse(user, team)
+	return c.Status(200).JSON(teamResponse)
 }

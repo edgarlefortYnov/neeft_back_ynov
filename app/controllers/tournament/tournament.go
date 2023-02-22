@@ -1,9 +1,5 @@
 package tournament
 
-/**
- * @Author ANYARONKE
- */
-
 import (
 	"errors"
 	"github.com/gofiber/fiber/v2"
@@ -11,8 +7,8 @@ import (
 	"neeft_back/database"
 )
 
-// TournamentSerialize serializer
-type TournamentSerialize struct {
+// SerializedTournamentResponse the structure of a tournament that is sent back to the client
+type SerializedTournamentResponse struct {
 	ID         uint   `json:"id" `
 	Name       string `json:"name"`
 	Count      uint   `json:"count"`
@@ -23,12 +19,7 @@ type TournamentSerialize struct {
 	Mode       string `json:"mode"`
 }
 
-// CreateResponseTournament /**
-func CreateResponseTournament(tournamentModel models.Tournament) models.Tournament {
-	return tournamentModel
-}
-
-// CreateTournament function to create a new tournament
+// CreateTournament creates a new tournament
 func CreateTournament(c *fiber.Ctx) error {
 	var tournament models.Tournament
 
@@ -40,32 +31,37 @@ func CreateTournament(c *fiber.Ctx) error {
 	tournament.IsFinished = false
 
 	database.Database.Db.Create(&tournament)
-	responseTournament := CreateResponseTournament(tournament)
-	return c.Status(200).JSON(responseTournament)
+
+	return c.Status(200).JSON(tournament)
 }
 
-// GetAllTournament function to get all users in the database
-func GetAllTournament(c *fiber.Ctx) error {
+// GetAllTournaments returns all tournaments
+func GetAllTournaments(c *fiber.Ctx) error {
 	var allTournament []models.Tournament
-	database.Database.Db.Find(&allTournament)
 	var responseTournaments []models.Tournament
+
+	database.Database.Db.Find(&allTournament)
+
 	for _, tournament := range allTournament {
-		responseTournament := CreateResponseTournament(tournament)
+		responseTournament := tournament
 		responseTournaments = append(responseTournaments, responseTournament)
 	}
+
 	return c.Status(200).JSON(responseTournaments)
 }
 
-// FindTournament function to find a user by id in the database
+// FindTournament find a tournament by its id
 func FindTournament(id int, tournament *models.Tournament) error {
 	database.Database.Db.Find(&tournament, "id = ?", id)
+
 	if tournament.ID == 0 {
 		return errors.New("tournament does not exist")
 	}
+
 	return nil
 }
 
-// GetTournament function to find a user by id in the database like find function
+// GetTournament returns the tournament with the specified id
 func GetTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
@@ -79,12 +75,10 @@ func GetTournament(c *fiber.Ctx) error {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	responseUser := CreateResponseTournament(tournament)
-
-	return c.Status(200).JSON(responseUser)
+	return c.Status(200).JSON(tournament)
 }
 
-// UpdateTournament function is used to update a user
+// UpdateTournament updates a tournament
 func UpdateTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
@@ -117,13 +111,11 @@ func UpdateTournament(c *fiber.Ctx) error {
 
 	database.Database.Db.Save(&tournament)
 
-	responseUser := CreateResponseTournament(tournament)
-
-	return c.Status(200).JSON(responseUser)
+	return c.Status(200).JSON(tournament)
 
 }
 
-// DeleteTournament function to delete a user
+// DeleteTournament deletes a tournament
 func DeleteTournament(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
 
@@ -142,5 +134,6 @@ func DeleteTournament(c *fiber.Ctx) error {
 	if err = database.Database.Db.Delete(&tournament).Error; err != nil {
 		return c.Status(404).JSON(err.Error())
 	}
+
 	return c.Status(200).JSON("Successfully deleted Tournament")
 }

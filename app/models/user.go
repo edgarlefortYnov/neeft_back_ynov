@@ -1,9 +1,5 @@
 package models
 
-/**
- * @Author ANYARONKE Daré Samuel
- */
-
 import (
 	"gorm.io/gorm"
 	"time"
@@ -28,49 +24,54 @@ type User struct {
 
 	Roles []RoleRelation `gorm:"foreignKey:UserID"`
 	Team  []Team         `gorm:"foreignKey:OwnerId"`
-
-	Created_at time.Time      `gorm:"autoCreateTime"`
-	Updated_at time.Time      `gorm:"null "`
-	Deleted_at gorm.DeletedAt `gorm:"null"`
 }
 
 // Users relationship of the user model with other models that are related to the user
 func Users(db *gorm.DB) ([]User, error) {
 	var users []User
+
 	err := db.Model(&User{}).Preload("RoleRelation").Find(&users).Error
+
 	return users, err
 }
 
-// GetUserWithRelationShip GetOne relationship of the user model with other models that are related to the user
-func GetUserWithRelationShip(db *gorm.DB, id uint) (User, error) {
+// GetUserWithRelationship GetOne relationship of the user model with other models that are related to the user
+func GetUserWithRelationship(db *gorm.DB, id uint) (User, error) {
 	var user User
+
 	// preload with user has role and team model
 	err := db.Model(&User{}).Preload("RoleRelation").Preload("Team").First(&user, id).Error
+
 	return user, err
 }
 
 // GetUser GetOne user
-func GetUser(db *gorm.DB, id uint) error {
+func GetUser(db *gorm.DB, id uint) (User, error) {
 	var user User
+
 	err := db.Model(&User{}).First(&user, id).Error
-	return err
+
+	return user, err
 }
 
 // Create a new user
 func Create(db *gorm.DB, user User) error {
 	err := db.Model(&User{}).Create(&user).Error
+
 	return err
 }
 
 // Update a user
 func Update(db *gorm.DB, user User) (User, error) {
 	err := db.Model(&User{}).Where("id = ?", user.ID).Updates(&user).Error
+
 	return user, err
 }
 
 // Delete a user
 func Delete(db *gorm.DB, id uint) error {
 	err := db.Model(&User{}).Where("id = ?", id).Delete(&User{}).Error
+
 	return err
 }
 

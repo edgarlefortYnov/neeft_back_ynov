@@ -1,9 +1,5 @@
 package models
 
-/**
- * @Author ANYARONKE Daré Samuel
- */
-
 import (
 	"gorm.io/gorm"
 )
@@ -21,58 +17,71 @@ type Team struct {
 // Teams Get all teams
 func Teams(db *gorm.DB) ([]Team, error) {
 	var teams []Team
+
 	err := db.Model(&Team{}).Find(&teams).Error
+
 	return teams, err
 }
 
 // GetTeam GetOne team
 func GetTeam(db *gorm.DB, id uint) error {
 	var team Team
+
 	err := db.Model(&Team{}).First(&team, id).Error
+
 	return err
 }
 
 // GetTeamById GetOne team by id
 func GetTeamById(db *gorm.DB, id uint) (Team, error) {
 	var team Team
+
 	err := db.Model(&Team{}).Where("id = ?", id).First(&team).Error
+
 	return team, err
 }
 
 // GetTeamByOwnerId GetOne team by owner id
 func GetTeamByOwnerId(db *gorm.DB, ownerId uint) (Team, error) {
 	var team Team
+
 	err := db.Model(&Team{}).Where("owner_id = ?", ownerId).First(&team).Error
+
 	return team, err
 }
 
 // CreateNewTeam a new team
-func CreateNewTeam(db *gorm.DB, team Team) error {
+func CreateNewTeam(db *gorm.DB, team *Team) error {
 	err := db.Model(&Team{}).Create(&team).Error
+
 	return err
 }
 
 // UpdateTeam Update a team
 func UpdateTeam(db *gorm.DB, team Team) (Team, error) {
 	err := db.Model(&Team{}).Where("id = ?", team.ID).Updates(&team).Error
+
 	return team, err
 }
 
 // DeleteTeam Delete a team
 func DeleteTeam(db *gorm.DB, id uint) error {
 	err := db.Model(&Team{}).Where("id = ?", id).Delete(&Team{}).Error
+
 	return err
 }
 
-// GetTeamWithRelationShip GetOne relationship of the team model with other models that are related to the team
-func GetTeamWithRelationShip(db *gorm.DB, id uint) (Team, error) {
+// GetTeamWithRelationship GetOne relationship of the team model with other models that are related to the team
+func GetTeamWithRelationship(db *gorm.DB, id uint) (Team, error) {
 	var team Team
+
 	err := db.Model(&Team{}).Preload("TeamMembers").First(&team, id).Error
+
 	return team, err
 }
 
-// GetTeamWithRelationShipByOwnerId GetOne relationship of the team model with other models that are related to the team
-func GetTeamWithRelationShipByOwnerId(db *gorm.DB, ownerId uint) (Team, error) {
+// GetTeamWithRelationshipByOwnerId GetOne relationship of the team model with other models that are related to the team
+func GetTeamWithRelationshipByOwnerId(db *gorm.DB, ownerId uint) (Team, error) {
 	var team Team
 	err := db.Model(&Team{}).Preload("TeamMembers").Where("owner_id = ?", ownerId).First(&team).Error
 	return team, err

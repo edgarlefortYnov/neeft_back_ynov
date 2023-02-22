@@ -1,10 +1,9 @@
 package models
 
-import (
-	"time"
-)
+import "gorm.io/gorm"
 
 type TournamentPlayer struct {
+	gorm.Model
 	ID           uint       `json:"id" gorm:"primaryKey"`
 	TournamentId uint       `gorm:"not null" json:"tournamentId"`
 	Tournament   Tournament `gorm:"foreignkey:TournamentId"`
@@ -12,8 +11,4 @@ type TournamentPlayer struct {
 	Team         Team       `gorm:"foreignkey:TeamId"`
 	UserId       uint       `gorm:"not null" json:"userId"`
 	User         User       `gorm:"foreignkey:UserId"`
-
-	Created_at time.Time
-	Updated_at time.Time
-	Deleted_at time.Time
 }

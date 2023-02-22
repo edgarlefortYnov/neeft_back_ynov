@@ -1,11 +1,8 @@
 package database
 
-/**
- * @Author ANYARONKE Dare Samuel
- */
-
 import (
 	"gorm.io/gorm"
+	"log"
 	"neeft_back/app/models"
 )
 
@@ -26,7 +23,9 @@ func RunMigration(db *gorm.DB) {
 		&models.Bracket{},
 		&models.AddFriend{},
 	)
+
 	if err != nil {
+		log.Fatalln("Failed to run migrations : " + err.Error())
 		return
 	}
 }

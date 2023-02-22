@@ -1,8 +1,5 @@
 package main
 
-/**
-²* @Author: Neeft, ANYARONKE Daré Samuel
-*/
 import (
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -15,7 +12,7 @@ import (
 
 func main() {
 	port := os.Getenv("PORT")
-	database.ConnectDb() // Initialize the database if it does not exist (it is created automatically the tables thanks to the migration)
+	database.ConnectToDatabase() // Initialize the database & run migrations
 
 	app := fiber.New()
 
@@ -30,6 +27,6 @@ func main() {
 		MaxAge:           0,
 	}))
 
-	routes.SetupRouters(app)
+	routes.RegisterRoutes(app)
 	log.Fatal(app.Listen(":" + port))
 }
