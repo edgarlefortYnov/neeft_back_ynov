@@ -20,9 +20,9 @@ import (
 
 // Register : Register a new user
 func Register(c *fiber.Ctx) error {
-	userInformation := new(models.User)
+	var userInformation models.User
 	// Get the user information from the request body
-	if err := c.BodyParser(userInformation); err != nil {
+	if err := c.BodyParser(&userInformation); err != nil {
 		return helper.Return400(c, "Invalid user information")
 	}
 	// Validate the user information and return the errors if there is any error in the user information provided by the user in the request body (email, username, password, etc...)
@@ -38,25 +38,19 @@ func Register(c *fiber.Ctx) error {
 	hashedPassword := helper.HashAndSalt([]byte(userInformation.Password))
 	userInformation.LastUserAgent = string(c.Request().Header.UserAgent())
 	// Create the user in the database
-	user := models.User{
-		Username:      userInformation.Username,
-		FirstName:     userInformation.FirstName,
-		LastName:      userInformation.LastName,
-		Email:         userInformation.Email,
-		Password:      hashedPassword,
-		LastUserAgent: userInformation.LastUserAgent,
-		IsBan:         false,
-		IsSuperAdmin:  false,
+	Db := database.Database.Db
+	userInformation.CreatedAt = time.Now()
+	userInformation.Password = hashedPassword
+	err := models.Create(Db, userInformation)
+	if err != nil {
+		return helper.Return500(c, err.Error())
 	}
-	database.Database.Db.Create(&user)
 	// assign the user to the default role
-	// TODO: Fix this part not working
-	/*
-		err := usersController.AssignRoleToUser(c, 1, uint(models.GUEST_ROLE))
-		if err != nil {
-			return err
-		}
-	*/
+	err = usersController.AssignRoleToUser(c, userInformation.ID, 12)
+	if err != nil {
+		return err
+	}
+
 	// Send message to the user that the account has been created successfully
 	return helper.Return200(c, "User created successfully")
 }

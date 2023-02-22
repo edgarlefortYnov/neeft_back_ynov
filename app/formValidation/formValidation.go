@@ -11,8 +11,8 @@ type ErrorResponse struct {
 	Value       string
 }
 
-// validate user information
-func ValidateUserInformation(userInformation *models.User) []*ErrorResponse {
+// ValidateUserInformation validate user information
+func ValidateUserInformation(userInformation models.User) []*ErrorResponse {
 	var errors []*ErrorResponse
 	var validateForm = validator.New()
 
