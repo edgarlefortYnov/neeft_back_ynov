@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"neeft_back/app/controllers/authController"
+	"neeft_back/app/controllers/teams"
 	"neeft_back/app/controllers/users"
 	"neeft_back/middleware"
 )
@@ -37,22 +38,10 @@ func SetupRouters(app *fiber.App) {
 	//api.Get("/show-friend/:id", users.GetUserFriends)
 
 	////------------------ Teams ------------------
-	//<<<<<<< Updated upstream
-	//	auth.Post("/team", teams.CreateTeam)
-	//	auth.Get("/teams", teams.GetAllTeam)
-	//	auth.Get("/team/:id", teams.GetTeam)
-	//	auth.Put("/team/:id", teams.UpdateTeam)
-	//
-	//	////------------------ Tournaments ------------------
-	//	auth.Post("/tournament", tournament.CreateTournament)
-	//	auth.Get("/tournaments", tournament.GetAllTournament)
-	//	auth.Get("/tournament/:id", tournament.GetTournament)
-	//	auth.Put("/tournament/:id", tournament.UpdateTournament)
-	//	auth.Delete("/tournament/:id", tournament.DeleteTournament)
-	//=======
-	//	api.Post("/team", teams.CreateTeam)
-	//	api.Get("/teams", teams.GetAllTeam)
-	//	api.Get("/team/:id", teams.GetTeam)
+
+	api.Post("/team", teams.CreateTeam)
+	api.Get("/teams", teams.GetAllTeam)
+	api.Get("/team/:id", teams.GetTeam)
 	//
 	//	////------------------ Tournaments ------------------
 	//	api.Post("/tournament", tournament.CreateTournament)

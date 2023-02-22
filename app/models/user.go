@@ -17,18 +17,21 @@ type User struct {
 	Email           string `gorm:"varchar(255)"  validate:"required,email,min=6,max=32"`
 	EmailVerifiedAt time.Time
 
-	Password      string         `gorm:"varchar(255)" validate:"required,min=8,max=32"`
-	RememberToken string         `gorm:"varchar(100)"`
-	BirthDate     string         `gorm:"varchar(255)"`
-	Avatar        string         `gorm:"varchar(255)"`
-	LastUserAgent string         `gorm:"varchar(255)"`
-	IsBan         bool           `gorm:"boolean default:false"`
-	LastLoginAt   time.Time      `gorm:"null"`
-	IsSuperAdmin  bool           `gorm:"boolean default:false"`
-	UserHasRole   []UserHasRole  `gorm:"foreignKey:UserID"`
-	Created_at    time.Time      `gorm:"autoCreateTime"`
-	Updated_at    time.Time      `gorm:"null "`
-	Deleted_at    gorm.DeletedAt `gorm:"null"`
+	Password      string    `gorm:"varchar(255)" validate:"required,min=8,max=32"`
+	RememberToken string    `gorm:"varchar(100)"`
+	BirthDate     string    `gorm:"varchar(255)"`
+	Avatar        string    `gorm:"varchar(255)"`
+	LastUserAgent string    `gorm:"varchar(255)"`
+	IsBan         bool      `gorm:"boolean default:false"`
+	LastLoginAt   time.Time `gorm:"null"`
+	IsSuperAdmin  bool      `gorm:"boolean default:false"`
+
+	UserHasRole []UserHasRole `gorm:"foreignKey:UserID"`
+	Team        []Team        `gorm:"foreignKey:OwnerId"`
+
+	Created_at time.Time      `gorm:"autoCreateTime"`
+	Updated_at time.Time      `gorm:"null "`
+	Deleted_at gorm.DeletedAt `gorm:"null"`
 }
 
 // Users relationship of the user model with other models that are related to the user
@@ -41,7 +44,8 @@ func Users(db *gorm.DB) ([]User, error) {
 // GetUserWithRelationShip GetOne relationship of the user model with other models that are related to the user
 func GetUserWithRelationShip(db *gorm.DB, id uint) (User, error) {
 	var user User
-	err := db.Model(&User{}).Preload("UserHasRole").First(&user, id).Error
+	// preload with user has role and team model
+	err := db.Model(&User{}).Preload("UserHasRole").Preload("Team").First(&user, id).Error
 	return user, err
 }
 

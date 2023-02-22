@@ -23,6 +23,7 @@ type UserSerialize struct {
 	LastName    string               `json:"last_name"`
 	Email       string               `json:"email"`
 	UserHasRole []models.UserHasRole `json:"user_has_role"`
+	Team        []models.Team        `json:"team"`
 }
 
 // CreateResponseUser /**
@@ -34,6 +35,7 @@ func CreateResponseUser(userModel models.User) UserSerialize {
 		LastName:    userModel.LastName,
 		Email:       userModel.Email,
 		UserHasRole: userModel.UserHasRole,
+		Team:        userModel.Team,
 	}
 }
 
