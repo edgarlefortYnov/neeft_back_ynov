@@ -41,6 +41,8 @@ func RegisterRoutes(app *fiber.App) {
 	auth.Get("/teams", teams.GetTeams)
 	auth.Get("/team/:id", teams.GetTeam)
 	auth.Put("/team/:id", teams.UpdateTeam)
+	auth.Get("/team/:id/requests/pending", teams.GetTeamPendingRequests)
+	auth.Post("/team/:id/requests/pending", teams.CreateTeamPendingRequest)
 
 	// Tournaments management
 	auth.Post("/tournament", tournament.CreateTournament)

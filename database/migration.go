@@ -22,6 +22,7 @@ func RunMigration(db *gorm.DB) {
 		&models.TournamentPlayer{},
 		&models.Bracket{},
 		&models.AddFriend{},
+		&models.TeamPendingRequest{},
 	)
 
 	if err != nil {

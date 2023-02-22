@@ -2,8 +2,12 @@ package teams
 
 import (
 	"github.com/gofiber/fiber/v2"
+	"gorm.io/gorm"
+	"neeft_back/app/config"
 	"neeft_back/app/models"
 	"neeft_back/database"
+	"neeft_back/middleware"
+	"neeft_back/utils"
 )
 
 // SerializedTeamResponse the structure of a team that is sent back to the client
@@ -16,6 +20,13 @@ type SerializedTeamResponse struct {
 	Type        string `json:"type"`
 }
 
+type SerializedTeamPendingRequestResponse struct {
+	gorm.Model
+	UserID uint
+	TeamID uint
+	Status uint
+}
+
 // NewSerializedTeamResponse  /**
 func NewSerializedTeamResponse(userModel models.User, teamModel models.Team) SerializedTeamResponse {
 	return SerializedTeamResponse{
@@ -25,6 +36,14 @@ func NewSerializedTeamResponse(userModel models.User, teamModel models.Team) Ser
 		IsBanned:    teamModel.IsBanned,
 		Description: teamModel.Description,
 		Type:        teamModel.Type,
+	}
+}
+
+func NewSerializedTeamPendingRequestResponse(request models.TeamPendingRequest) SerializedTeamPendingRequestResponse {
+	return SerializedTeamPendingRequestResponse{
+		UserID: request.UserID,
+		TeamID: request.TeamID,
+		Status: 0,
 	}
 }
 
@@ -170,4 +189,64 @@ func UpdateTeam(c *fiber.Ctx) error {
 
 	teamResponse := NewSerializedTeamResponse(user, team)
 	return c.Status(200).JSON(teamResponse)
+}
+
+func GetTeamPendingRequests(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	db := database.Database.Db
+	err = models.GetTeam(db, uint(id))
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	requests, err := models.GetPendingRequestsForTeam(db, uint(id))
+	if err != nil {
+		return c.Status(200).Status(400).JSON(err.Error())
+	}
+
+	return c.Status(200).JSON(requests)
+}
+
+func AcceptTeamPendingRequest(c *fiber.Ctx) error {
+	// TODO: Accept a team pending request
+	return nil
+}
+
+func CreateTeamPendingRequest(c *fiber.Ctx) error {
+	id, err := c.ParamsInt("id")
+	if err != nil {
+		return c.Status(400).JSON("Please ensure that :id is an integer")
+	}
+
+	db := database.Database.Db
+	err = models.GetTeam(db, uint(id))
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	claims := config.JWTClaims{}
+
+	if err := utils.CheckJWT(c, &claims); err != nil {
+		return c.Status(401).JSON(err.Error())
+	}
+
+	user := models.User{}
+
+	if err := middleware.FindUserByClaim(claims, &user); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+
+	request := models.TeamPendingRequest{
+		UserID: user.ID,
+		TeamID: uint(id),
+		Status: models.TeamRequestStatusPending,
+	}
+
+	models.CreateNewTeamPendingRequest(db, &request)
+
+	return c.Status(200).JSON("Success")
 }
