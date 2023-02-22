@@ -30,13 +30,13 @@ func CreateUserFriend(c *fiber.Ctx) error {
 
 	var user1 models.User
 
-	if err := FindUser(addFriend.UserId, &user1); err != nil {
+	if err := FindUser(uint(addFriend.UserId), &user1); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
 	var user2 models.User
 
-	if err := FindUser(addFriend.FriendId, &user2); err != nil {
+	if err := FindUser(uint(addFriend.FriendId), &user2); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 

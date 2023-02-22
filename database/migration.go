@@ -13,9 +13,9 @@ import (
 func RunMigration(db *gorm.DB) {
 	err := db.AutoMigrate(
 		// Users
-		&models.Role{},
 		&models.User{},
-		&models.UserRole{},
+		&models.Role{},
+		&models.UserHasRole{},
 		&models.Team{},
 		&models.InfoPro{},
 		&models.UsersTeam{},
