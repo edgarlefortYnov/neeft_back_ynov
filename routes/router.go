@@ -15,7 +15,6 @@ func RegisterRoutes(app *fiber.App) {
 	// Authentication
 	app.Post("/api/player/register", authController.Register)
 	app.Post("/api/player/login", authController.Login)
-	app.Post("/refresh-login", authController.RefreshLogin)
 
 	// Following routes will require JWT authentication
 	auth := api.Use(middleware.VerifyJWT)
