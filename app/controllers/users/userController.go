@@ -14,50 +14,52 @@ import (
 	"github.com/gofiber/fiber/v2"
 )
 
+// UserSerialize User : this is the router for the users not the model of User
+// UserSerialize serializer
+type UserSerialize struct {
+	ID          uint                 `json:"id"`
+	Username    string               `json:"username"`
+	FirstName   string               `json:"first_name"`
+	LastName    string               `json:"last_name"`
+	Email       string               `json:"email"`
+	UserHasRole []models.UserHasRole `json:"user_has_role"`
+}
+
 // CreateResponseUser /**
-func CreateResponseUser(userModel models.User) models.User {
-	return userModel
-}
-
-func EmailExist(email string) bool {
-	var user models.User
-	if err := database.Database.Db.Where("email = ?", email).First(&user).Error; err != nil {
-		return false
+func CreateResponseUser(userModel models.User) UserSerialize {
+	return UserSerialize{
+		ID:          userModel.ID,
+		Username:    userModel.Username,
+		FirstName:   userModel.FirstName,
+		LastName:    userModel.LastName,
+		Email:       userModel.Email,
+		UserHasRole: userModel.UserHasRole,
 	}
-	return true
 }
 
-// CreateUser function to create a new user
+// CreateUser Calling create user function to the user model to create a new user
 func CreateUser(c *fiber.Ctx) error {
+	Db := database.Database.Db
 	var user models.User
-
-	if err := c.BodyParser(&user); err != nil {
-		return c.Status(400).JSON(err.Error())
+	err := c.BodyParser(&user)
+	if err != nil {
+		return c.Status(500).JSON(err)
 	}
-
-	if EmailExist(user.Email) {
-		return c.Status(400).JSON("Email already exist")
+	user.CreatedAt = time.Now()
+	user.EmailVerifiedAt = time.Now()
+	err = models.Create(Db, user)
+	if err != nil {
+		return helper.Return500(c, err.Error())
 	}
-
-	hashUserPassword := helper.HashAndSalt([]byte(user.Password))
-	user.Password = hashUserPassword
-	//user.LastUserAgent = string(c.Request().Header.UserAgent())
-
-	// Default values
-	user.IsBan = false
-	user.IsSuperAdmin = false
-
-	database.Database.Db.Create(&user)
-	responseUser := CreateResponseUser(user)
-	return c.Status(200).JSON(responseUser)
+	return helper.Return200(c, "User created successfully")
 }
 
 // GetAllUser function to get all users in the database
 func GetAllUser(c *fiber.Ctx) error {
-	var allUsers []models.User
-	database.Database.Db.Find(&allUsers)
-	var responseUsers []models.User
-	for _, user := range allUsers {
+	Db := database.Database.Db
+	users, _ := models.Users(Db)
+	var responseUsers []UserSerialize
+	for _, user := range users {
 		responseUser := CreateResponseUser(user)
 		responseUsers = append(responseUsers, responseUser)
 	}
@@ -65,98 +67,111 @@ func GetAllUser(c *fiber.Ctx) error {
 }
 
 // FindUser function to find a user by id in the database
-func FindUser(id int, user *models.User) error {
-	database.Database.Db.Find(&user, "id = ?", id)
+func FindUser(id uint, user *models.User) error {
+	database.Database.Db.Preload("UserHasRole").First(&user, id)
 	if user.ID == 0 {
-		return errors.New("user does not exist")
+		return errors.New("user not found")
 	}
 	return nil
 }
 
 // GetUser function to find a user by id in the database like find function
 func GetUser(c *fiber.Ctx) error {
+	// Get the id from the url
 	id, err := c.ParamsInt("id")
-
-	var user models.User
-
+	// Check if the id is valid
 	if err != nil {
 		return c.Status(fiber.StatusBadRequest).JSON("Please ensure that :id is an integer")
 	}
-
-	if err := FindUser(id, &user); err != nil {
+	// Find the user
+	Db := database.Database.Db
+	user, err := models.GetUserWithRelationShip(Db, uint(id))
+	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-
+	// Return the user
 	responseUser := CreateResponseUser(user)
-
 	return c.Status(200).JSON(responseUser)
 }
 
 // UpdateUser function is used to update a user
 func UpdateUser(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
-
-	var user models.User
-
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
 	}
 
-	err = FindUser(id, &user)
-
+	Db := database.Database.Db
+	err = models.GetUser(Db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-
-	type UpdateUser struct {
-		Username   string `json:"username"`
-		FirstName  string `json:"first_name"`
-		LastName   string `json:"last_name"`
-		Email      string `json:"email"`
-		BirthDate  string `json:"birth_date"`
-		Avatar     string `json:"avatar"`
-		Updated_at time.Time
-	}
-
-	var updateData UpdateUser
+	// TODO: to review
+	var updateData models.User
 
 	if err := c.BodyParser(&updateData); err != nil {
 		return c.Status(500).JSON(err.Error())
 	}
 
-	user.LastName = updateData.Username
-	user.FirstName = updateData.FirstName
-	user.LastName = updateData.LastName
-	user.Email = updateData.Email
-	user.BirthDate = updateData.BirthDate
-	user.Avatar = updateData.Avatar
-	user.Updated_at = updateData.Updated_at
-
-	database.Database.Db.Save(&user)
-
-	responseUser := CreateResponseUser(user)
-
+	userUpdate, err := models.Update(Db, updateData)
+	if err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	responseUser := CreateResponseUser(userUpdate)
 	return c.Status(200).JSON(responseUser)
+	// TODO: End to review
 }
 
 // DeleteUser function to delete a user
 func DeleteUser(c *fiber.Ctx) error {
 	id, err := c.ParamsInt("id")
-
-	var user models.User
-
 	if err != nil {
 		return c.Status(400).JSON("Please ensure that :id is an integer")
 	}
 
-	err = FindUser(id, &user)
-
+	Db := database.Database.Db
+	err = models.GetUser(Db, uint(id))
 	if err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
 
-	if err = database.Database.Db.Delete(&user).Error; err != nil {
+	// Delete the user
+	if err = models.Delete(Db, uint(id)); err != nil {
 		return c.Status(404).JSON(err.Error())
 	}
 	return c.Status(200).JSON("Successfully deleted User")
+}
+
+// AssignRoleToUser assign role to user by role id and user id
+func AssignRoleToUser(c *fiber.Ctx, userID uint, roleID uint) error {
+
+	// Get user and role by id
+	var user models.User
+	var role models.Role
+	// Check if user and role exist
+	if err := FindUser(userID, &user); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	if err := FindRole(roleID, &role); err != nil {
+		return c.Status(400).JSON(err.Error())
+	}
+	// Assign role to user by creating a new UserHasRole
+	var UserHasRole models.UserHasRole
+	UserHasRole.UserID = user.ID
+	UserHasRole.RoleID = role.ID
+	database.Database.Db.Create(&UserHasRole)
+
+	return c.Status(200).JSON("Role assigned to user successfully")
+}
+
+func getUserRoles(c *fiber.Ctx, userID uint) ([]models.Role, error) {
+	var userRoles []models.Role
+	var userHasRoles []models.UserHasRole
+	database.Database.Db.Where("user_id = ?", userID).Find(&userHasRoles)
+	for _, userHasRole := range userHasRoles {
+		var role models.Role
+		database.Database.Db.Where("id = ?", userHasRole.RoleID).Find(&role)
+		userRoles = append(userRoles, role)
+	}
+	return userRoles, nil
 }
