@@ -14,8 +14,8 @@ func SetupRouters(app *fiber.App) {
 	//------------------ Auth ---------------------
 	api := app.Group("/api")
 
-	app.Post("/api/register", authController.Register)
-	app.Post("/api/login", authController.Login)
+	app.Post("/api/player/register", authController.Register)
+	app.Post("/api/player/login", authController.Login)
 	app.Post("/refresh-login", authController.RefreshLogin)
 
 	// Need to be logged in to access the routes below

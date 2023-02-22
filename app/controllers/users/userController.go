@@ -17,25 +17,22 @@ import (
 // UserSerialize User : this is the router for the users not the model of User
 // UserSerialize serializer
 type UserSerialize struct {
-	ID          uint                 `json:"id"`
-	Username    string               `json:"username"`
-	FirstName   string               `json:"first_name"`
-	LastName    string               `json:"last_name"`
-	Email       string               `json:"email"`
-	UserHasRole []models.UserHasRole `json:"user_has_role"`
-	Team        []models.Team        `json:"team"`
+	ID             uint                  `json:"id"`
+	Username       string                `json:"username"`
+	Email          string                `json:"email"`
+	ProfilePicture string                `json:"profilePicture"`
+	Roles          []models.RoleRelation `json:"roles"`
+	Status         string                `json:"status"`
 }
 
 // CreateResponseUser /**
 func CreateResponseUser(userModel models.User) UserSerialize {
 	return UserSerialize{
-		ID:          userModel.ID,
-		Username:    userModel.Username,
-		FirstName:   userModel.FirstName,
-		LastName:    userModel.LastName,
-		Email:       userModel.Email,
-		UserHasRole: userModel.UserHasRole,
-		Team:        userModel.Team,
+		ID:       userModel.ID,
+		Username: userModel.Username,
+		Email:    userModel.Email,
+		Roles:    userModel.Roles,
+		Status:   "active",
 	}
 }
 
@@ -70,7 +67,7 @@ func GetAllUser(c *fiber.Ctx) error {
 
 // FindUser function to find a user by id in the database
 func FindUser(id uint, user *models.User) error {
-	database.Database.Db.Preload("UserHasRole").First(&user, id)
+	database.Database.Db.Preload("RoleRelation").First(&user, id)
 	if user.ID == 0 {
 		return errors.New("user not found")
 	}
@@ -157,8 +154,8 @@ func AssignRoleToUser(c *fiber.Ctx, userID uint, roleID uint) error {
 	if err := FindRole(roleID, &role); err != nil {
 		return c.Status(400).JSON(err.Error())
 	}
-	// Assign role to user by creating a new UserHasRole
-	var UserHasRole models.UserHasRole
+	// Assign role to user by creating a new RoleRelation
+	var UserHasRole models.RoleRelation
 	UserHasRole.UserID = user.ID
 	UserHasRole.RoleID = role.ID
 	database.Database.Db.Create(&UserHasRole)
@@ -168,7 +165,7 @@ func AssignRoleToUser(c *fiber.Ctx, userID uint, roleID uint) error {
 
 func getUserRoles(c *fiber.Ctx, userID uint) ([]models.Role, error) {
 	var userRoles []models.Role
-	var userHasRoles []models.UserHasRole
+	var userHasRoles []models.RoleRelation
 	database.Database.Db.Where("user_id = ?", userID).Find(&userHasRoles)
 	for _, userHasRole := range userHasRoles {
 		var role models.Role

@@ -13,7 +13,7 @@ type UserHasRoleSerialize struct {
 }
 
 // CreateUserHasRoleResponseUser /**
-func CreateUserHasRoleResponseUser(userHasRole models.UserHasRole) UserHasRoleSerialize {
+func CreateUserHasRoleResponseUser(userHasRole models.RoleRelation) UserHasRoleSerialize {
 	return UserHasRoleSerialize{
 		Role: userHasRole.Role,
 	}

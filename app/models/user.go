@@ -26,8 +26,8 @@ type User struct {
 	LastLoginAt   time.Time `gorm:"null"`
 	IsSuperAdmin  bool      `gorm:"boolean default:false"`
 
-	UserHasRole []UserHasRole `gorm:"foreignKey:UserID"`
-	Team        []Team        `gorm:"foreignKey:OwnerId"`
+	Roles []RoleRelation `gorm:"foreignKey:UserID"`
+	Team  []Team         `gorm:"foreignKey:OwnerId"`
 
 	Created_at time.Time      `gorm:"autoCreateTime"`
 	Updated_at time.Time      `gorm:"null "`
@@ -37,7 +37,7 @@ type User struct {
 // Users relationship of the user model with other models that are related to the user
 func Users(db *gorm.DB) ([]User, error) {
 	var users []User
-	err := db.Model(&User{}).Preload("UserHasRole").Find(&users).Error
+	err := db.Model(&User{}).Preload("RoleRelation").Find(&users).Error
 	return users, err
 }
 
@@ -45,7 +45,7 @@ func Users(db *gorm.DB) ([]User, error) {
 func GetUserWithRelationShip(db *gorm.DB, id uint) (User, error) {
 	var user User
 	// preload with user has role and team model
-	err := db.Model(&User{}).Preload("UserHasRole").Preload("Team").First(&user, id).Error
+	err := db.Model(&User{}).Preload("RoleRelation").Preload("Team").First(&user, id).Error
 	return user, err
 }
 

@@ -15,7 +15,7 @@ func RunMigration(db *gorm.DB) {
 		// Users
 		&models.User{},
 		&models.Role{},
-		&models.UserHasRole{},
+		&models.RoleRelation{},
 		&models.Team{},
 		&models.InfoPro{},
 		&models.UsersTeam{},

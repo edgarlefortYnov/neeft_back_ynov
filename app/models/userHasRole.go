@@ -4,7 +4,7 @@ import (
 	"time"
 )
 
-type UserHasRole struct {
+type RoleRelation struct {
 	RoleID uint
 	Role   Role `gorm:"foreignkey:RoleID"`
 	UserID uint
