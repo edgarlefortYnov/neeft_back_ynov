@@ -144,3 +144,32 @@ func DeleteTournament(c *fiber.Ctx) error {
 	}
 	return c.Status(200).JSON("Successfully deleted Tournament")
 }
+
+// DeleteTeamFromTournamentTeam function to delete a user
+func DeleteTeamFromTournamentTeam(c *fiber.Ctx) error {
+	teamID, errTeamId := c.ParamsInt("teamID")
+	tournamentTeamID, errTournamentTeamId := c.ParamsInt("tournamentID")
+	// Check if the ids are integers or exist
+	if errTeamId != nil || errTournamentTeamId != nil {
+		return c.Status(400).JSON("Please ensure that :ids is an integer")
+	}
+	// Check if the team and tournament exist
+	Db := database.Database.Db
+	team, errTeam := models.GetTeamById(Db, uint(teamID))
+	errTournament := models.GetTournamentTeam(Db, uint(tournamentTeamID))
+	if errTeam != nil || errTournament != nil {
+		return c.Status(400).JSON("Team or Tournament doesnt exist")
+	}
+
+	// chef if user is authorized to delete the team
+	// chef if user is authorized to delete the team
+	if team.OwnerId != uint(c.Locals("userID").(uint)) {
+		return c.Status(403).JSON("You are not authorized to delete this team")
+	}
+
+	// Delete the team from the tournament
+	if err := models.DeleteTeamInTournament(Db, uint(tournamentTeamID), uint(teamID)); err != nil {
+		return c.Status(404).JSON(err.Error())
+	}
+	return c.Status(200).JSON("Successfully deleted User")
+}

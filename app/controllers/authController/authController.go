@@ -117,6 +117,9 @@ func Login(c *fiber.Ctx) error {
 		return helper.Return500(c, err.Error())
 	}
 
+	// Set user id to local storage
+	c.Locals("userID", user.ID)
+
 	return c.Status(fiber.StatusOK).JSON(fiber.Map{
 		"access_token":  accessToken,
 		"refresh_token": refreshToken,

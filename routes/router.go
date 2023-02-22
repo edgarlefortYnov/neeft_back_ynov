@@ -48,6 +48,7 @@ func SetupRouters(app *fiber.App) {
 	api.Get("/tournaments", tournament.GetAllTournament)
 	api.Get("/tournament/:id", tournament.GetTournament)
 	api.Delete("/tournament/:id", tournament.DeleteTournament)
+	api.Delete("/tournament/:tournamentID/team/:teamID", tournament.DeleteTeamFromTournamentTeam)
 
 	// Debug
 	// api.Get("/jwt/debug", users.JWTDebug)
