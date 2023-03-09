@@ -46,7 +46,7 @@ func EmailExist(email string) bool {
 
 // UserExist check if the user exist
 func UserExist(email string, username string, firstname string, lastname string) bool {
-	return EmailExist(email) || UsernameExist(username) || FirstNameOrLastNameExists(firstname, lastname)
+	return EmailExist(email) || UsernameExist(username)
 }
 
 // HandleError is a helper function to handle errors

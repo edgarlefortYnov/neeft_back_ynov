@@ -83,11 +83,6 @@ func Login(c *fiber.Ctx) error {
 		return helper.Return401(c, "A problem occurred during the connection; please contact the administrator")
 	}
 
-	// Check if the user has the same user agent as stored
-	if user.LastUserAgent != string(c.Request().Header.UserAgent()) {
-		return helper.Return401(c, "User Agent has changed")
-	}
-
 	// Generate the access token
 	accessTokenExpiryTime := time.Now().Add(time.Minute * 5)
 	accessTokenClaims := &config.JWTClaims{
@@ -137,11 +132,6 @@ func RefreshLogin(c *fiber.Ctx) error {
 
 	if err := middleware.FindUserByClaim(claims, &user); err != nil {
 		return c.Status(400).JSON(err.Error())
-	}
-
-	// Check if the user has the same user agent as stored
-	if user.LastUserAgent != string(c.Request().Header.UserAgent()) {
-		return helper.Return401(c, "User Agent has changed")
 	}
 
 	// Generate the new access token
