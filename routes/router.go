@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/gofiber/fiber/v2"
 	"neeft_back/app/controllers/authController"
+	"neeft_back/app/controllers/conversations"
 	"neeft_back/app/controllers/teams"
 	"neeft_back/app/controllers/tournament"
 	"neeft_back/app/controllers/users"
@@ -48,4 +49,23 @@ func RegisterRoutes(app *fiber.App) {
 	auth.Get("/tournaments", tournament.GetAllTournaments)
 	auth.Get("/tournament/:id", tournament.GetTournament)
 	auth.Delete("/tournament/:id", tournament.DeleteTournament)
+
+	// Conversation management
+	auth.Post("/conversation", conversations.CreateConversation)
+	auth.Get("/conversations", conversations.GetConversations)
+	auth.Get("/conversation/:id", conversations.GetConversation)
+	auth.Get("/conversationByUser/:id", conversations.GetConversationsByUserId)
+	auth.Get("/conversationByChatId/:id", conversations.GetConversationsByChatId)
+	auth.Put("/conversation/:id", conversations.UpdateConversation)
+	auth.Delete("/conversation/:id", conversations.DeleteConversation)
+
+	// Message management
+	auth.Post("/message", conversations.CreateMessage)
+	auth.Get("/messages", conversations.GetMessages)
+	auth.Get("/message/:id", conversations.GetMessage)
+	auth.Get("/messagesByConversationId/:id", conversations.GetMessagesByConversationId)
+	auth.Get("/fiftyLastMessages/:id", conversations.GetLastFiftyMessagesByConversationId)
+	auth.Get("/messagesByEmitterId/:id", conversations.GetMessagesByEmitterId)
+	auth.Put("/message/:id", conversations.UpdateMessage)
+	auth.Delete("/message/:id", conversations.DeleteMessage)
 }

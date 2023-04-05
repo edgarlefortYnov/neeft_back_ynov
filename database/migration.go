@@ -16,6 +16,8 @@ func RunMigration(db *gorm.DB) {
 		&models.Team{},
 		&models.InfoPro{},
 		&models.UsersTeam{},
+		&models.Conversation{},
+		&models.Message{},
 		&models.Game{},
 		&models.Tournament{},
 		&models.TeamRegistrationTournament{},
