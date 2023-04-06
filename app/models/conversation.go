@@ -46,6 +46,14 @@ func GetConversationsByChatId(db *gorm.DB, id string) ([]Conversation, error) {
 	return conversations, err
 }
 
+/*func GetFirstConversationsByChatId(db *gorm.DB, id string) (Conversation, error) {
+	var conversation Conversation
+
+	err := db.First(&Conversation{}, "chat_id = ?", id).Error
+
+	return conversation, err
+}*/
+
 func CreateConversation(db *gorm.DB, conversation *Conversation) error {
 	err := db.Model(&Conversation{}).Create(&conversation).Error
 

@@ -6,11 +6,10 @@ import (
 
 type Message struct {
 	gorm.Model
-	ConversationId string       `gorm:"not null" json:"conversationId"`
-	Conversation   Conversation `gorm:"foreignkey:ConversationId"`
-	EmitterId      string       `gorm:"not null" json:"emitterId"`
-	Emitter        User         `gorm:"foreignkey:EmitterId"`
-	Content        string       `gorm:"not null" json:"content"`
+	ConversationId string `gorm:"not null" json:"conversationId"`
+	EmitterId      uint   `gorm:"not null" json:"emitterId"`
+	Emitter        User   `gorm:"foreignkey:EmitterId"`
+	Content        string `gorm:"not null" json:"content"`
 }
 
 func Messages(db *gorm.DB) ([]Message, error) {
@@ -29,7 +28,7 @@ func GetMessage(db *gorm.DB, id uint) (Message, error) {
 	return message, err
 }
 
-func GetMessagesByConversationId(db *gorm.DB, id uint) ([]Message, error) {
+func GetMessagesByConversationId(db *gorm.DB, id string) ([]Message, error) {
 	var messages []Message
 
 	err := db.Model(&Message{}).Where("conversation_id = ?", id).Find(&messages).Error
@@ -37,10 +36,10 @@ func GetMessagesByConversationId(db *gorm.DB, id uint) ([]Message, error) {
 	return messages, err
 }
 
-func GetLastFiftyMessagesByConversationId(db *gorm.DB, id uint) ([]Message, error) {
+func GetLastFiftyMessagesByConversationId(db *gorm.DB, id string) ([]Message, error) {
 	var messages []Message
 
-	err := db.Model(&Message{}).Limit(50).Where("conversation_id = ?", id).Order("UpdatedAt desc").Find(&messages).Error
+	err := db.Model(&Message{}).Limit(50).Where("conversation_id = ?", id).Order("updated_at desc").Find(&messages).Error
 
 	return messages, err
 }
